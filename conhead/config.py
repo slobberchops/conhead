@@ -6,6 +6,8 @@ from typing import Optional
 
 import tomli
 
+from conhead import util
+
 
 class ConfigError(Exception):
     """Raised when there is a configuration error."""
@@ -34,7 +36,7 @@ def deindent_string(s: str):
 @dataclasses.dataclass(frozen=True)
 class Header:
     template: str
-    extensions: list[str]
+    extensions: tuple[str, ...]
 
     @classmethod
     def from_dict(cls, name: str, dct: dict[str, Any]):
@@ -46,9 +48,7 @@ class Header:
             raise ConfigError(f"tool.conhead.header.{name}: template must be str")
 
         # Extensions
-        extensions = dct.pop("extensions", None)
-        if extensions is None:
-            extensions = [name]
+        extensions = dct.pop("extensions", [name])
 
         if not (
             isinstance(extensions, list) and all(isinstance(s, str) for s in extensions)
@@ -61,15 +61,15 @@ class Header:
         if dct:
             unexpected = ", ".join(sorted(dct.keys()))
             raise ConfigError(f"unexpected options: {unexpected}")
-        return cls(template=deindent_string(template), extensions=extensions)
+        return cls(template=deindent_string(template), extensions=tuple(extensions))
 
 
 @dataclasses.dataclass(frozen=True)
 class Config:
-    headers: dict[str, Header]
+    headers: util.FrozenDict[Header]
 
     @classmethod
-    def from_dict(cls, dct: dict[str, Any]):
+    def from_dict(cls, dct: dict[str, Any]) -> "Config":
         headers = {}
         headers_dct = dct.pop("header", {})
         if not isinstance(headers_dct, dict):
@@ -88,7 +88,7 @@ class Config:
         )
         if unexpected_sections:
             raise ConfigError(f"unexpected sections: {unexpected_sections}")
-        return Config(headers=headers)
+        return Config(headers=util.FrozenDict(headers))
 
 
 def find_pyproject() -> Optional[pathlib.Path]:

@@ -3,6 +3,7 @@ import os
 import pytest
 
 from conhead import config
+from conhead import util
 from tests.conhead import file_testing
 
 
@@ -132,11 +133,14 @@ class TestHeader:
         )
         def test_default_extensions():
             assert config.load() == config.Config(
-                headers={
-                    "py": config.Header(
-                        template="Template line 1\nTemplate line 2\n", extensions=["py"]
-                    )
-                }
+                headers=util.FrozenDict(
+                    {
+                        "py": config.Header(
+                            template="Template line 1\nTemplate line 2\n",
+                            extensions=("py",),
+                        )
+                    }
+                )
             )
 
         @staticmethod
@@ -155,12 +159,14 @@ class TestHeader:
         )
         def test_explicit_extensions():
             assert config.load() == config.Config(
-                headers={
-                    "py": config.Header(
-                        template="Template line 1\nTemplate line 2\n",
-                        extensions=["ext1", "ext2"],
-                    )
-                }
+                headers=util.FrozenDict(
+                    {
+                        "py": config.Header(
+                            template="Template line 1\nTemplate line 2\n",
+                            extensions=("ext1", "ext2"),
+                        )
+                    }
+                )
             )
 
 
@@ -240,7 +246,7 @@ class TestConfig:
         @pytest.mark.parametrize("pyproject_toml", ["other-options = 10"])
         def test_no_definitions():
             loaded = config.load()
-            assert loaded == config.Config(headers={})
+            assert loaded == config.Config(headers=util.FrozenDict())
 
 
 class TestFindPyproject:
@@ -324,11 +330,11 @@ class TestLoad:
         assert conhead_config.headers.keys() == {"py", "toml"}
 
         assert conhead_config.headers["py"] == config.Header(
-            template="# Python header\n# License X\n", extensions=["py"]
+            template="# Python header\n# License X\n", extensions=("py",)
         )
         assert conhead_config.headers["toml"] == config.Header(
             template="# Toml header\n# License X\n",
-            extensions=["toml"],
+            extensions=("toml",),
         )
 
     @staticmethod

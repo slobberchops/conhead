@@ -1,12 +1,19 @@
 import collections.abc
 import copy
+from typing import Mapping
+from typing import Optional
+from typing import TypeVar
+
+A = TypeVar("A")
 
 
-class FrozenDict(collections.abc.Mapping):
-    __dict: dict
+class FrozenDict(collections.abc.Hashable, collections.abc.Mapping[str, A]):
+    __dict: dict[str, A]
 
-    def __init__(self, dct=None, /, **kwargs):
-        self.__dict = dict(kwargs or {})
+    def __init__(self, dct: Optional[Mapping[str, A]] = None, /, **kwargs):
+        self.__dict = {}
+        if kwargs is not None:
+            self.__dict.update(kwargs)
         if dct is not None:
             self.__dict.update(dct)
 

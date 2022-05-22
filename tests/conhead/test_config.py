@@ -139,6 +139,30 @@ class TestHeader:
                 }
             )
 
+        @staticmethod
+        @pytest.mark.parametrize(
+            "pyproject_toml",
+            [
+                '''
+                [tool.conhead.header.py]
+                extensions = ["ext1", "ext2"]
+                template = """
+                    Template line 1
+                    Template line 2
+                """
+                '''
+            ],
+        )
+        def test_explicit_extensions():
+            assert config.load() == config.Config(
+                headers={
+                    "py": config.Header(
+                        template="Template line 1\nTemplate line 2\n",
+                        extensions=["ext1", "ext2"],
+                    )
+                }
+            )
+
 
 class TestConfig:
     class TestFromDict:

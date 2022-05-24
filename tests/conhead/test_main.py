@@ -247,3 +247,13 @@ class TestMain:
             logging.WARNING,
             "header out of date: src/out-of-date.ext4",
         )
+
+    @staticmethod
+    def test_quiet(cli_runner, caplog):
+        result = cli_runner.invoke(
+            main.main,
+            ["--check", "-qqq", "src/up-to-date.ext2", "src/out-of-date.ext4"],
+        )
+        assert result.exit_code == 1
+
+        assert not caplog.record_tuples

@@ -12,8 +12,7 @@ class FrozenDict(collections.abc.Hashable, collections.abc.Mapping[str, A]):
 
     def __init__(self, dct: Optional[Mapping[str, A]] = None, /, **kwargs):
         self.__dict = {}
-        if kwargs is not None:
-            self.__dict.update(kwargs)
+        self.__dict.update(kwargs)
         if dct is not None:
             self.__dict.update(dct)
 

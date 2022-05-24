@@ -35,6 +35,14 @@ def test_conhead_logger(verbose, quiet, expected):
     assert "conhead" not in manager.loggerDict
 
 
+def test_naive_now():
+    dt = main.naive_now()
+    expected = datetime.datetime.now()
+    delta = datetime.timedelta(seconds=10)
+    assert dt < expected + delta
+    assert dt > expected - delta
+
+
 class TestMain:
     @staticmethod
     @pytest.fixture

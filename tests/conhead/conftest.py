@@ -22,8 +22,13 @@ def pyproject_toml() -> Optional[str]:
 
 
 @pytest.fixture
-def project_dir_content(pyproject_toml) -> file_testing.DirContent:
-    return {"pyproject.toml": pyproject_toml}
+def source_dir() -> Optional[file_testing.DirContent]:
+    return None
+
+
+@pytest.fixture
+def project_dir_content(pyproject_toml, source_dir) -> file_testing.DirContent:
+    return {"pyproject.toml": pyproject_toml, "src": source_dir}
 
 
 @pytest.fixture(autouse=True)

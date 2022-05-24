@@ -6,6 +6,7 @@ from typing import Optional
 import pytest
 from click import testing
 
+from conhead import config
 from tests.conhead import file_testing
 
 
@@ -34,3 +35,10 @@ def project_dir(tmp_path, project_dir_content) -> Iterator[pathlib.Path]:
         yield project_dir
     finally:
         os.chdir(cwd)
+
+
+@pytest.fixture
+def conhead_config(pyproject_toml) -> config.Config:
+    cfg = config.load()
+    assert cfg
+    return cfg

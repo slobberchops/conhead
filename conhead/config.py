@@ -1,4 +1,5 @@
 import dataclasses
+import functools
 import pathlib
 import re
 from typing import Any
@@ -35,8 +36,14 @@ def deindent_string(s: str):
 
 @dataclasses.dataclass(frozen=True)
 class Header:
+    name: str
     template: str
     extensions: tuple[str, ...]
+
+    @functools.cached_property
+    def extensions_re(self) -> re.Pattern:
+        pattern = "|".join(re.escape(e) for e in self.extensions)
+        return re.compile(rf"\.(?:{pattern})$")
 
     @classmethod
     def from_dict(cls, name: str, dct: dict[str, Any]):
@@ -61,12 +68,30 @@ class Header:
         if dct:
             unexpected = ", ".join(sorted(dct.keys()))
             raise ConfigError(f"unexpected options: {unexpected}")
-        return cls(template=deindent_string(template), extensions=tuple(extensions))
+        return cls(
+            name=name, template=deindent_string(template), extensions=tuple(extensions)
+        )
 
 
 @dataclasses.dataclass(frozen=True)
 class Config:
     headers: util.FrozenDict[Header]
+
+    @functools.cached_property
+    def extensions_re(self) -> re.Pattern:
+        groups = [
+            rf"(?P<{header.name}>{header.extensions_re.pattern})"
+            for header in self.headers.values()
+        ]
+        return re.compile("|".join(groups))
+
+    def header_for_path(self, path: pathlib.Path) -> Optional[Header]:
+        match = self.extensions_re.search(str(path))
+        if match:
+            group = match.lastgroup
+            return self.headers[group]
+        else:
+            return None
 
     @classmethod
     def from_dict(cls, dct: dict[str, Any]) -> "Config":

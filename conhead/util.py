@@ -33,13 +33,13 @@ class FrozenDict(collections.abc.Hashable, collections.abc.Mapping[str, A]):
         return repr(self.__dict)
 
     def __or__(self, other):
-        if isinstance(other, collections.Mapping):  # type: ignore
+        if isinstance(other, collections.abc.Mapping):  # type: ignore
             return type(self)(self.__dict | other)
         else:
             return NotImplemented
 
     def __ror__(self, other):
-        if isinstance(other, collections.Mapping):  # type: ignore
+        if isinstance(other, collections.abc.Mapping):  # type: ignore
             return type(self)(other | self.__dict)
         else:
             return NotImplemented

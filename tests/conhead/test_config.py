@@ -28,6 +28,14 @@ class TestDeindentString:
 
 
 class TestHeader:
+    @staticmethod
+    def test_extensions_re():
+        cfg = config.Header(name="test", template="", extensions=("ext1", "ext2"))
+        regex = cfg.extensions_re
+        assert regex.pattern == r"\.(?:ext1|ext2)$"
+        assert regex.search("path1/path2/file.ext1")
+        assert regex.search("path1/path2/file.ext2")
+
     class TestFromDict:
         @staticmethod
         @pytest.mark.parametrize(
@@ -131,11 +139,12 @@ class TestHeader:
                 '''
             ],
         )
-        def test_default_extensions():
-            assert config.load() == config.Config(
+        def test_default_extensions(conhead_config):
+            assert conhead_config == config.Config(
                 headers=util.FrozenDict(
                     {
                         "py": config.Header(
+                            name="py",
                             template="Template line 1\nTemplate line 2\n",
                             extensions=("py",),
                         )
@@ -157,11 +166,12 @@ class TestHeader:
                 '''
             ],
         )
-        def test_explicit_extensions():
-            assert config.load() == config.Config(
+        def test_explicit_extensions(conhead_config):
+            assert conhead_config == config.Config(
                 headers=util.FrozenDict(
                     {
                         "py": config.Header(
+                            name="py",
                             template="Template line 1\nTemplate line 2\n",
                             extensions=("ext1", "ext2"),
                         )
@@ -171,6 +181,45 @@ class TestHeader:
 
 
 class TestConfig:
+    class TestExtensionLookup:
+        @staticmethod
+        @pytest.fixture
+        def pyproject_toml() -> str:
+            return """
+                [tool.conhead.header.header1]
+                template = ""
+                extensions = ["ext1", "ext2"]
+
+                [tool.conhead.header.header2]
+                template = ""
+                extensions = ["ext3", "ext4"]
+                """
+
+        class TestHeaderForPath:
+            @staticmethod
+            def test_unknown_ext(conhead_config):
+                assert (
+                    conhead_config.header_for_path("path1/path2/file.unknown") is None
+                )
+
+            @staticmethod
+            def test_found_header(conhead_config):
+                header = conhead_config.header_for_path("path1/path2/file.ext1")
+                assert header
+                assert header is conhead_config.headers["header1"]
+
+                header = conhead_config.header_for_path("path1/path2/file.ext2")
+                assert header
+                assert header is conhead_config.headers["header1"]
+
+                header = conhead_config.header_for_path("path1/path2/file.ext3")
+                assert header
+                assert header is conhead_config.headers["header2"]
+
+                header = conhead_config.header_for_path("path1/path2/file.ext4")
+                assert header
+                assert header is conhead_config.headers["header2"]
+
     class TestFromDict:
         @staticmethod
         @pytest.mark.parametrize(
@@ -330,9 +379,10 @@ class TestLoad:
         assert conhead_config.headers.keys() == {"py", "toml"}
 
         assert conhead_config.headers["py"] == config.Header(
-            template="# Python header\n# License X\n", extensions=("py",)
+            name="py", template="# Python header\n# License X\n", extensions=("py",)
         )
         assert conhead_config.headers["toml"] == config.Header(
+            name="toml",
             template="# Toml header\n# License X\n",
             extensions=("toml",),
         )

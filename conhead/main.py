@@ -4,6 +4,7 @@ import logging
 import pathlib
 import sys
 from typing import Iterator
+from typing import Union
 
 import click
 
@@ -32,6 +33,41 @@ def naive_now() -> datetime.datetime:
     return datetime.datetime.now()
 
 
+def process_path(
+    cfg: config.Config,
+    now: datetime.datetime,
+    logger: logging.Logger,
+    path: Union[pathlib.Path, str],
+) -> bool:
+    if isinstance(path, str):
+        path = pathlib.Path(path)
+
+    logger.info("process %s", path)
+    try:
+        content = path.read_text()
+    except FileNotFoundError:
+        logger.error("file not found: %s", path)
+        return False
+
+    header = cfg.header_for_path(path)
+    if not header:
+        logger.error("no header def for: %s", path)
+        return False
+
+    mark_data = header.parse_marks(content)
+    if mark_data is None:
+        logger.warning("missing header: %s", path)
+        return False
+
+    updated_dates = tuple((d[0], now.year) for d in mark_data)
+    if updated_dates != mark_data:
+        logger.warning("header out of date: %s", path)
+        return False
+
+    logger.info("up to date: %s", path)
+    return True
+
+
 @click.command("conhead")
 @click.argument("paths", nargs=-1, type=click.Path(exists=False), metavar="SRC")
 @click.option("--check", is_flag=True, default=False)
@@ -50,37 +86,11 @@ def main(paths, check, verbose, quiet):
 
         now = naive_now()
 
-        error_count = 0
+        error = False
         for path in (pathlib.Path(p) for p in paths):
-            logger.info("process %s", path)
-            try:
-                content = path.read_text()
-            except FileNotFoundError:
-                error_count += 1
-                logger.error("file not found: %s", path)
-                continue
+            error |= not process_path(cfg, now, logger, path)
 
-            header = cfg.header_for_path(path)
-            if not header:
-                error_count += 1
-                logger.error("no header def for: %s", path)
-                continue
-
-            mark_data = header.parse_marks(content)
-            if mark_data is None:
-                logger.warning("missing header: %s", path)
-                error_count += 1
-                continue
-
-            updated_dates = tuple((d[0], now.year) for d in mark_data)
-            if updated_dates != mark_data:
-                logger.warning("header out of date: %s", path)
-                error_count += 1
-                continue
-
-            logger.info("header is up to date: %s", path)
-
-        if error_count > 0:
+        if error:
             sys.exit(1)
 
 

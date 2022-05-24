@@ -34,7 +34,7 @@ def project_dir_content(pyproject_toml, source_dir) -> file_testing.DirContent:
 @pytest.fixture(autouse=True)
 def project_dir(tmp_path, project_dir_content) -> Iterator[pathlib.Path]:
     project_dir = tmp_path / "project"
-    file_testing.write_content(project_dir, project_dir_content)
+    file_testing.write_content_dir(project_dir, project_dir_content)
     cwd = pathlib.Path.cwd()
     try:
         os.chdir(project_dir)

@@ -31,6 +31,7 @@ def pyproject_toml() -> str:
 @pytest.fixture
 def source_dir() -> file_testing.DirContent:
     return {
+        "unreadable.ext1": file_testing.Perm("", read=False),
         "empty.ext1": "",
         "unmatched.unknown": "",
         "up-to-date.ext2": """\
@@ -121,6 +122,18 @@ class TestProcessPath:
             "test",
             logging.ERROR,
             "file not found: src/unknown.ext1",
+        )
+
+    @staticmethod
+    def test_not_readable(logger, conhead_config, caplog):
+        assert not main.process_path(conhead_config, NOW, logger, "src/unreadable.ext1")
+
+        process, not_found = caplog.record_tuples
+        assert process == ("test", logging.INFO, "process src/unreadable.ext1")
+        assert not_found == (
+            "test",
+            logging.ERROR,
+            "unreadable: src/unreadable.ext1",
         )
 
     @staticmethod

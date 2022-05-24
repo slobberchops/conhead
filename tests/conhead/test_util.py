@@ -71,7 +71,7 @@ class TestFrozenDict:
             @staticmethod
             def test_incompatble(dct):
                 with pytest.raises(TypeError):
-                    dct | "a string"
+                    dct | "a string"  # type: ignore
 
         class TestRor:
             @staticmethod
@@ -82,7 +82,7 @@ class TestFrozenDict:
             @staticmethod
             def test_incompatble(dct):
                 with pytest.raises(TypeError):
-                    "a string" | dct
+                    "a string" | dct  # type: ignore
 
         @staticmethod
         def test_copy_operator(dct):

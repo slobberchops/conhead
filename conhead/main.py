@@ -48,6 +48,9 @@ def process_path(
     except FileNotFoundError:
         logger.error("file not found: %s", path)
         return False
+    except PermissionError:
+        logger.error("unreadable: %s", path)
+        return False
 
     header = cfg.header_for_path(path)
     if not header:

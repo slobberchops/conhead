@@ -3,6 +3,7 @@ import os
 import pytest
 
 from conhead import config
+from conhead import template
 from conhead import util
 from tests.conhead import file_testing
 
@@ -46,6 +47,20 @@ class TestHeader:
         match = cfg.template_re.match("test 2014-2018 test\nrest of doc")
         assert match
         assert match.lastgroup == "grp0"
+
+    @staticmethod
+    def test_mark_map():
+        cfg = config.Header(
+            name="test",
+            template="test {{YEAR}} test {{YEAR}}",
+            extensions=("ext1", "ext2"),
+        )
+        assert cfg.mark_map == util.FrozenDict(
+            {
+                "grp0": template.MarkKind.YEAR,
+                "grp1": template.MarkKind.YEAR,
+            }
+        )
 
     class TestFromDict:
         @staticmethod

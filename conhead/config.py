@@ -54,6 +54,10 @@ class Header:
     def template_re(self) -> re.Pattern:
         return self._template_re[1]
 
+    @functools.cached_property
+    def mark_map(self) -> util.FrozenDict[template_module.MarkKind]:
+        return util.FrozenDict(self._template_re[0])
+
     @classmethod
     def from_dict(cls, name: str, dct: dict[str, Any]):
         # Template

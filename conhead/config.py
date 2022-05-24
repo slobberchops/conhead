@@ -7,6 +7,7 @@ from typing import Optional
 
 import tomli
 
+from conhead import template as template_module
 from conhead import util
 
 
@@ -44,6 +45,14 @@ class Header:
     def extensions_re(self) -> re.Pattern:
         pattern = "|".join(re.escape(e) for e in self.extensions)
         return re.compile(rf"\.(?:{pattern})$")
+
+    @functools.cached_property
+    def _template_re(self) -> template_module.TemplateRe:
+        return template_module.make_template_re(self.template)
+
+    @functools.cached_property
+    def template_re(self) -> re.Pattern:
+        return self._template_re[1]
 
     @classmethod
     def from_dict(cls, name: str, dct: dict[str, Any]):

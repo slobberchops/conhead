@@ -36,6 +36,17 @@ class TestHeader:
         assert regex.search("path1/path2/file.ext1")
         assert regex.search("path1/path2/file.ext2")
 
+    @staticmethod
+    def test_template_re():
+        cfg = config.Header(
+            name="test", template="test {{YEAR}} test", extensions=("ext1", "ext2")
+        )
+        assert cfg.template_re.pattern == "^test\\ (?P<grp0>\\d{4}(?:-\\d{4})?)\\ test"
+
+        match = cfg.template_re.match("test 2014-2018 test\nrest of doc")
+        assert match
+        assert match.lastgroup == "grp0"
+
     class TestFromDict:
         @staticmethod
         @pytest.mark.parametrize(

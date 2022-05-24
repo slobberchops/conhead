@@ -1,3 +1,5 @@
+# line 1 2014
+
 import contextlib
 import pathlib
 import sys
@@ -53,14 +55,13 @@ def main(paths, check):
                     error_count += 1
                     logger.error('no header def for: %s', path)
                 else:
-                    match = header.template_re.match(content)
+                    match = header.extensions_re.match(content)
                     if not match:
                         logger.warning('missing header: %s', path)
                         error_count += 1
                     else:
-                        logging.info('has header: %s', path)
                         for group in header.mark_map.keys():
-                            value = 
+                            logging.error(group)
 
         if error_count > 0:
             sys.exit(1)

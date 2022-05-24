@@ -23,6 +23,9 @@ pyright = "^1.1"
 pytest-cov = "^3.0"
 pytest = "^7.1"
 
+[tool.poetry.scripts]
+conhead = "conhead.main:main"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -49,3 +52,8 @@ reportUnknownLambdaType = true
 reportInvalidTypeVarUse = true
 reportUnnecessaryCast = true
 reportUnsupportedDunderAll = true
+
+[tool.conhead.header.py]
+template="""
+    # line 1 {{YEAR}}
+"""

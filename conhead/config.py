@@ -78,14 +78,21 @@ class Config:
     headers: util.FrozenDict[Header]
 
     @functools.cached_property
-    def extensions_re(self) -> re.Pattern:
+    def extensions_re(self) -> Optional[re.Pattern]:
         groups = [
             rf"(?P<{header.name}>{header.extensions_re.pattern})"
             for header in self.headers.values()
         ]
-        return re.compile("|".join(groups))
+        pattern = "|".join(groups)
+        if pattern:
+            return re.compile(pattern)
+        else:
+            return None
 
     def header_for_path(self, path: pathlib.Path) -> Optional[Header]:
+        if not self.extensions_re:
+            return None
+
         match = self.extensions_re.search(str(path))
         if match:
             group = match.lastgroup

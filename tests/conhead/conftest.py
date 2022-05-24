@@ -7,6 +7,7 @@ import pytest
 from click import testing
 
 from conhead import config
+from conhead import util
 from tests.conhead import file_testing
 
 
@@ -39,6 +40,4 @@ def project_dir(tmp_path, project_dir_content) -> Iterator[pathlib.Path]:
 
 @pytest.fixture
 def conhead_config(pyproject_toml) -> config.Config:
-    cfg = config.load()
-    assert cfg
-    return cfg
+    return config.load() or config.Config(headers=util.FrozenDict())

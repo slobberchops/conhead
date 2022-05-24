@@ -195,9 +195,46 @@ class TestConfig:
                 extensions = ["ext3", "ext4"]
                 """
 
+        class TestExtensionRe:
+            @staticmethod
+            @pytest.mark.parametrize("pyproject_toml", [None])
+            def test_no_configuration(conhead_config):
+                assert conhead_config.extensions_re is None
+
+            @staticmethod
+            def test_all_extensions(conhead_config):
+                regex = conhead_config.extensions_re
+                assert (
+                    regex.pattern
+                    == "(?P<header1>\\.(?:ext1|ext2)$)|(?P<header2>\\.(?:ext3|ext4)$)"
+                )
+
+                match = regex.search("path1/path2/file.ext1")
+                assert match
+                assert match.lastgroup == "header1"
+
+                match = regex.search("path1/path2/file.ext2")
+                assert match
+                assert match.lastgroup == "header1"
+
+                match = regex.search("path1/path2/file.ext3")
+                assert match
+                assert match.lastgroup == "header2"
+
+                match = regex.search("path1/path2/file.ext4")
+                assert match
+                assert match.lastgroup == "header2"
+
         class TestHeaderForPath:
             @staticmethod
             def test_unknown_ext(conhead_config):
+                assert (
+                    conhead_config.header_for_path("path1/path2/file.unknown") is None
+                )
+
+            @staticmethod
+            @pytest.mark.parametrize("pyproject_toml", [None])
+            def test_empty_config(conhead_config):
                 assert (
                     conhead_config.header_for_path("path1/path2/file.unknown") is None
                 )

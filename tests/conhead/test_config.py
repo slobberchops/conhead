@@ -64,6 +64,32 @@ class TestHeader:
             }
         )
 
+    class TestParseMarks:
+        @staticmethod
+        @pytest.fixture
+        def config_header() -> config.Header:
+            return config.Header(
+                name="test",
+                template="test {{YEAR}} test {{YEAR}}",
+                extensions=("ext1", "ext2"),
+            )
+
+        @staticmethod
+        def test_single_years(config_header):
+            year1, year2 = config_header.parse_marks("test 2014 test 2015")
+            assert year1 == (2014, 2014)
+            assert year2 == (2015, 2015)
+
+        @staticmethod
+        def test_year_range(config_header):
+            year1, year2 = config_header.parse_marks("test 2014-2016 test 2015-2019")
+            assert year1 == (2014, 2016)
+            assert year2 == (2015, 2019)
+
+        @staticmethod
+        def test_matching_header(config_header):
+            ...
+
     class TestFromDict:
         @staticmethod
         @pytest.mark.parametrize(

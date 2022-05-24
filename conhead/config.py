@@ -10,12 +10,17 @@ import tomli
 from conhead import template as template_module
 from conhead import util
 
+DateRange = tuple[int, int]
+MarkData = tuple[DateRange, ...]
+
 
 class ConfigError(Exception):
     """Raised when there is a configuration error."""
 
 
 INDENT_RE = re.compile(r"^(\s*)")
+
+_GROUP_YEAR_RE = re.compile(r"(\d{4})(?:-(\d{4}))?")
 
 
 def deindent_string(s: str):
@@ -57,6 +62,22 @@ class Header:
     @functools.cached_property
     def mark_map(self) -> util.FrozenDict[template_module.MarkKind]:
         return util.FrozenDict(self._template_re[0])
+
+    def parse_marks(self, content: str) -> Optional[MarkData]:
+        match = self.template_re.match(content)
+        if not match:
+            return None
+        else:
+            values = []
+            for group in self.mark_map.keys():
+                unparsed = match.group(group)
+                year_match = _GROUP_YEAR_RE.match(unparsed)
+                assert year_match is not None
+                start, end = year_match.groups()
+                start_int = int(start)
+                end_int = int(start if end is None else end)
+                values.append((start_int, end_int))
+            return tuple(values)
 
     @classmethod
     def from_dict(cls, name: str, dct: dict[str, Any]):

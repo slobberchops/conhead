@@ -42,11 +42,13 @@ class TestHeader:
         cfg = config.Header(
             name="test", template="test {{YEAR}} test", extensions=("ext1", "ext2")
         )
-        assert cfg.template_re.pattern == "^test\\ (?P<grp0>\\d{4}(?:-\\d{4})?)\\ test"
+        assert (
+            cfg.template_re.pattern == "^test\\ (?P<grp00000>\\d{4}(?:-\\d{4})?)\\ test"
+        )
 
         match = cfg.template_re.match("test 2014-2018 test\nrest of doc")
         assert match
-        assert match.lastgroup == "grp0"
+        assert match.lastgroup == "grp00000"
 
     @staticmethod
     def test_mark_map():
@@ -57,8 +59,8 @@ class TestHeader:
         )
         assert cfg.mark_map == util.FrozenDict(
             {
-                "grp0": template.MarkKind.YEAR,
-                "grp1": template.MarkKind.YEAR,
+                "grp00000": template.MarkKind.YEAR,
+                "grp00001": template.MarkKind.YEAR,
             }
         )
 

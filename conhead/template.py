@@ -80,7 +80,7 @@ def make_template_re(template: str) -> TemplateRe:
     groups = {}
     for kind, value, line, column in tokenize_template(template):
         if kind is TokenKind.YEAR:
-            group_name = f"grp{len(groups)}"
+            group_name = f"grp{len(groups):05}"
             pattern.write(f"(?P<{group_name}>{_YEAR_RE.pattern})")
             groups[group_name] = MarkKind.YEAR
         elif kind is TokenKind.ESCAPED:

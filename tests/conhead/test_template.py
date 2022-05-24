@@ -92,14 +92,14 @@ class TestMakeTemplateRe:
             "line 1 {{YEAR}}.\nline 2 {{YEAR}}."
         )
         assert groups == {
-            "grp0": template.MarkKind.YEAR,
-            "grp1": template.MarkKind.YEAR,
+            "grp00000": template.MarkKind.YEAR,
+            "grp00001": template.MarkKind.YEAR,
         }
 
         match = template_re.match("line 1 2014.\nline 2 2014-2018.")
         assert match
-        assert match.group("grp0") == "2014"
-        assert match.group("grp1") == "2014-2018"
+        assert match.group("grp00000") == "2014"
+        assert match.group("grp00001") == "2014-2018"
 
     @staticmethod
     def test_escaping():

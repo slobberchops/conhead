@@ -1,5 +1,7 @@
+import datetime
 import os
 import pathlib
+from typing import Iterable
 from typing import Iterator
 from typing import Optional
 
@@ -7,8 +9,10 @@ import pytest
 from click import testing
 
 from conhead import config
+from conhead import main
 from conhead import util
 from tests.conhead import file_testing
+from tests.conhead.test_process import NOW
 
 
 @pytest.fixture
@@ -46,3 +50,18 @@ def project_dir(tmp_path, project_dir_content) -> Iterator[pathlib.Path]:
 @pytest.fixture
 def conhead_config(pyproject_toml) -> config.Config:
     return config.load() or config.Config(headers=util.FrozenDict())
+
+
+@pytest.fixture
+def fake_time() -> Iterable[None]:
+    original_now = main.naive_now
+    try:
+
+        def fake_now() -> Iterator[datetime.datetime]:
+            yield NOW
+
+        iterator = fake_now()
+        main.naive_now = lambda: next(iterator)
+        yield
+    finally:
+        main.naive_now = original_now

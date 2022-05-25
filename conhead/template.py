@@ -4,6 +4,7 @@ import io
 import re
 from typing import Iterator
 from typing import Optional
+from typing import TextIO
 
 
 class TemplateError(Exception):
@@ -36,6 +37,12 @@ _GROUP_YEAR_RE = re.compile(r"(\d{4})(?:-(\d{4}))?")
 class Years:
     start: int
     end: int
+
+    def __str__(self):
+        if self.start == self.end:
+            return str(self.start)
+        else:
+            return f"{self.start}-{self.end}"
 
     def __iter__(self):
         yield self.start
@@ -122,3 +129,15 @@ def make_template_parser(template: str) -> HeaderParser:
         else:
             pattern.write(re.escape(value))
     return HeaderParser(tuple(groups), re.compile(pattern.getvalue()))
+
+
+def write_header(template: str, values: FieldValues, output: TextIO):
+    value_iterator = iter(values)
+    for kind, value, line, column in tokenize_template(template):
+        if kind is TokenKind.YEAR:
+            years = next(value_iterator)
+            output.write(str(years))
+        elif kind is TokenKind.ESCAPED:
+            output.write(value[1:])
+        else:
+            output.write(value)

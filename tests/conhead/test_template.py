@@ -1,3 +1,4 @@
+import io
 import re
 
 import pytest
@@ -142,3 +143,14 @@ class TestMakeTemplateRe:
 
         match = parser.regex.match("line 1 {.\n line 2 }. line 3 \\.")
         assert match
+
+
+def test_write_header():
+    content = io.StringIO()
+    template.write_header(
+        "start {{YEAR}} middle\n{{YEAR}} \\{end\\}",
+        (template.Years(2019, 2019), template.Years(2014, 2019)),
+        content,
+    )
+
+    assert content.getvalue() == "start 2019 middle\n2014-2019 {end}"

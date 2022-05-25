@@ -39,10 +39,28 @@ def naive_now() -> datetime.datetime:
 
 @click.command("conhead")
 @click.argument("paths", nargs=-1, type=click.Path(exists=False), metavar="SRC")
-@click.option("--check", is_flag=True, default=False)
-@click.option("--verbose", "-v", count=True)
-@click.option("--quiet", "-q", count=True)
+@click.option(
+    "--check",
+    is_flag=True,
+    default=False,
+    help="Runs check without trying to re-write.",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    count=True,
+    help="Increase log verbosity. May be used more than once.",
+)
+@click.option(
+    "--quiet",
+    "-q",
+    count=True,
+    help="Decrease log verbosity. May be used more than once.",
+)
 def main(paths, check, verbose, quiet):
+    """
+    Consistent header manager
+    """
     with conhead_logger(verbose, quiet) as logger:
         cfg = config.load() or config.Config(header_defs=util.FrozenDict())
         if not cfg.header_defs:

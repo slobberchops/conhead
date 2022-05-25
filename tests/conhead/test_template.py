@@ -72,42 +72,36 @@ class TestTokenizeTemplate:
 class TestMakeTemplateRe:
     @staticmethod
     def test_empty():
-        groups, template_re = template.make_template_re("")
-        assert groups == {}
-        assert template_re.pattern == "^"
+        parser = template.make_template_parser("")
+        assert parser.fields == ()
+        assert parser.regex.pattern == "^"
 
     @staticmethod
     def test_static_content():
-        groups, template_re = template.make_template_re(
-            "template line 1\ntemplate line 2"
-        )
-        assert groups == {}
-        assert template_re.pattern == "^" + re.escape(
+        parser = template.make_template_parser("template line 1\ntemplate line 2")
+        assert parser.fields == ()
+        assert parser.regex.pattern == "^" + re.escape(
             "template line 1\ntemplate line 2"
         )
 
     @staticmethod
     def test_years():
-        groups, template_re = template.make_template_re(
-            "line 1 {{YEAR}}.\nline 2 {{YEAR}}."
+        parser = template.make_template_parser("line 1 {{YEAR}}.\nline 2 {{YEAR}}.")
+        assert parser.fields == (
+            template.FieldKind.YEAR,
+            template.FieldKind.YEAR,
         )
-        assert groups == {
-            "grp00000": template.FieldKind.YEAR,
-            "grp00001": template.FieldKind.YEAR,
-        }
 
-        match = template_re.match("line 1 2014.\nline 2 2014-2018.")
+        match = parser.regex.match("line 1 2014.\nline 2 2014-2018.")
         assert match
-        assert match.group("grp00000") == "2014"
-        assert match.group("grp00001") == "2014-2018"
+        assert match.group(1) == "2014"
+        assert match.group(2) == "2014-2018"
 
     @staticmethod
     def test_escaping():
-        groups, template_re = template.make_template_re(
-            "line 1 \\{.\n line 2 \\}. line 3 \\\\."
-        )
+        parser = template.make_template_parser("line 1 \\{.\n line 2 \\}. line 3 \\\\.")
 
-        assert groups == {}
+        assert parser.fields == ()
 
-        match = template_re.match("line 1 {.\n line 2 }. line 3 \\.")
+        match = parser.regex.match("line 1 {.\n line 2 }. line 3 \\.")
         assert match

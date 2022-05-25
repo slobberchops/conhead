@@ -71,20 +71,22 @@ def tokenize_template(template: str) -> Iterator[Token]:
         column += len(content_value)
 
 
-TemplateRe = tuple[dict[str, FieldKind], re.Pattern]
+@dataclasses.dataclass(frozen=True)
+class TemplateParser:
+    fields: tuple[FieldKind, ...]
+    regex: re.Pattern
 
 
-def make_template_re(template: str) -> TemplateRe:
+def make_template_parser(template: str) -> TemplateParser:
     pattern = io.StringIO()
     pattern.write("^")
-    groups = {}
+    groups = []
     for kind, value, line, column in tokenize_template(template):
         if kind is TokenKind.YEAR:
-            group_name = f"grp{len(groups):05}"
-            pattern.write(f"(?P<{group_name}>{_YEAR_RE.pattern})")
-            groups[group_name] = FieldKind.YEAR
+            pattern.write(f"({_YEAR_RE.pattern})")
+            groups.append(FieldKind.YEAR)
         elif kind is TokenKind.ESCAPED:
             pattern.write(re.escape(value[1:]))
         else:
             pattern.write(re.escape(value))
-    return groups, re.compile(pattern.getvalue())
+    return TemplateParser(tuple(groups), re.compile(pattern.getvalue()))

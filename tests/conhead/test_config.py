@@ -24,7 +24,7 @@ class TestDeindentString:
             }
         """
         assert config.deindent_string(string) == (
-            "\n" "{\n" "    {\n" "        {\n" "        }\n" "    }\n" "}\n"
+            "\n{\n    {\n        {\n        }\n    }\n}\n"
         )
 
 
@@ -38,31 +38,17 @@ class TestHeader:
         assert regex.search("path1/path2/file.ext2")
 
     @staticmethod
-    def test_template_re():
+    def test_parser():
         cfg = config.Header(
             name="test", template="test {{YEAR}} test", extensions=("ext1", "ext2")
         )
-        assert (
-            cfg.template_re.pattern == "^test\\ (?P<grp00000>\\d{4}(?:-\\d{4})?)\\ test"
-        )
+        assert cfg.parser.regex.pattern == "^test\\ (\\d{4}(?:-\\d{4})?)\\ test"
 
-        match = cfg.template_re.match("test 2014-2018 test\nrest of doc")
+        match = cfg.parser.regex.match("test 2014-2018 test\nrest of doc")
         assert match
-        assert match.lastgroup == "grp00000"
+        assert match.groups() == ("2014-2018",)
 
-    @staticmethod
-    def test_field_map():
-        cfg = config.Header(
-            name="test",
-            template="test {{YEAR}} test {{YEAR}}",
-            extensions=("ext1", "ext2"),
-        )
-        assert cfg.field_map == util.FrozenDict(
-            {
-                "grp00000": template.FieldKind.YEAR,
-                "grp00001": template.FieldKind.YEAR,
-            }
-        )
+        assert cfg.parser.fields == (template.FieldKind.YEAR,)
 
     class TestParseFields:
         @staticmethod

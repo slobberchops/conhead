@@ -62,24 +62,16 @@ class Header:
         return re.compile(rf"\.(?:{pattern})$")
 
     @functools.cached_property
-    def _template_re(self) -> template_module.TemplateRe:
-        return template_module.make_template_re(self.template)
-
-    @functools.cached_property
-    def template_re(self) -> re.Pattern:
-        return self._template_re[1]
-
-    @functools.cached_property
-    def field_map(self) -> util.FrozenDict[template_module.FieldKind]:
-        return util.FrozenDict(self._template_re[0])
+    def parser(self) -> template_module.TemplateParser:
+        return template_module.make_template_parser(self.template)
 
     def parse_fields(self, content: str) -> Optional[FieldValues]:
-        match = self.template_re.match(content)
+        match = self.parser.regex.match(content)
         if not match:
             return None
         else:
             values = []
-            for group in self.field_map.keys():
+            for group in range(1, len(self.parser.fields) + 1):
                 unparsed = match.group(group)
                 year_match = _GROUP_YEAR_RE.match(unparsed)
                 assert year_match is not None

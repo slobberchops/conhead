@@ -5,6 +5,33 @@ import pytest
 from conhead import template
 
 
+class TestTemplateParser:
+    class TestParseFields:
+        @staticmethod
+        @pytest.fixture
+        def template_parser() -> template.TemplateParser:
+            return template.TemplateParser(
+                fields=(template.FieldKind.YEAR, template.FieldKind.YEAR),
+                regex=re.compile("^test (.*) test (.*)"),
+            )
+
+        @staticmethod
+        def test_single_years(template_parser):
+            year1, year2 = template_parser.parse_fields("test 2014 test 2015")
+            assert year1 == template.Years(2014, 2014)
+            assert year2 == template.Years(2015, 2015)
+
+        @staticmethod
+        def test_year_range(template_parser):
+            year1, year2 = template_parser.parse_fields("test 2014-2016 test 2015-2019")
+            assert year1 == template.Years(2014, 2016)
+            assert year2 == template.Years(2015, 2019)
+
+        @staticmethod
+        def test_matching_header(template_parser):
+            ...
+
+
 class TestTokenizeTemplate:
     @staticmethod
     def test_empty():

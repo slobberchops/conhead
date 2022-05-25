@@ -11,26 +11,11 @@ from conhead import template as template_module
 from conhead import util
 
 
-@dataclasses.dataclass(frozen=True, order=True)
-class Years:
-    start: int
-    end: int
-
-    def __iter__(self):
-        yield self.start
-        yield self.end
-
-
-FieldValues = tuple[Years, ...]
-
-
 class ConfigError(Exception):
     """Raised when there is a configuration error."""
 
 
 INDENT_RE = re.compile(r"^(\s*)")
-
-_GROUP_YEAR_RE = re.compile(r"(\d{4})(?:-(\d{4}))?")
 
 
 def deindent_string(s: str):
@@ -64,22 +49,6 @@ class Header:
     @functools.cached_property
     def parser(self) -> template_module.TemplateParser:
         return template_module.make_template_parser(self.template)
-
-    def parse_fields(self, content: str) -> Optional[FieldValues]:
-        match = self.parser.regex.match(content)
-        if not match:
-            return None
-        else:
-            values = []
-            for group in range(1, len(self.parser.fields) + 1):
-                unparsed = match.group(group)
-                year_match = _GROUP_YEAR_RE.match(unparsed)
-                assert year_match is not None
-                start, end = year_match.groups()
-                start_int = int(start)
-                end_int = int(start if end is None else end)
-                values.append(Years(start_int, end_int))
-            return tuple(values)
 
     @classmethod
     def from_dict(cls, name: str, dct: dict[str, Any]):

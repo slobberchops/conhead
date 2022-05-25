@@ -3,6 +3,7 @@ import logging
 import pathlib
 from typing import Union
 
+import conhead.template
 from conhead import config
 
 
@@ -30,12 +31,14 @@ def check_file(
         logger.error("no header def for: %s", path)
         return False
 
-    field_values = header.parse_fields(content)
+    field_values = header.parser.parse_fields(content)
     if field_values is None:
         logger.warning("missing header: %s", path)
         return False
 
-    updated_dates = tuple(config.Years(d.start, now.year) for d in field_values)
+    updated_dates = tuple(
+        conhead.template.Years(d.start, now.year) for d in field_values
+    )
     if updated_dates != field_values:
         logger.warning("header out of date: %s", path)
         return False

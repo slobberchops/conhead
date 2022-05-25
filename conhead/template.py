@@ -3,6 +3,7 @@ import enum
 import io
 import re
 from typing import Iterator
+from typing import Optional
 
 
 class TemplateError(Exception):
@@ -27,6 +28,21 @@ Token = tuple[TokenKind, str, int, int]
 _TOKENIZER_RE = re.compile("|".join(f"(?P<{t.name}>{t.value})" for t in TokenKind))
 
 _YEAR_RE = re.compile(r"\d{4}(?:-\d{4})?")
+
+_GROUP_YEAR_RE = re.compile(r"(\d{4})(?:-(\d{4}))?")
+
+
+@dataclasses.dataclass(frozen=True, order=True)
+class Years:
+    start: int
+    end: int
+
+    def __iter__(self):
+        yield self.start
+        yield self.end
+
+
+FieldValues = tuple[Years, ...]
 
 
 def tokenize_template(template: str) -> Iterator[Token]:
@@ -69,6 +85,22 @@ def tokenize_template(template: str) -> Iterator[Token]:
 class TemplateParser:
     fields: tuple[FieldKind, ...]
     regex: re.Pattern
+
+    def parse_fields(self, content: str) -> Optional[FieldValues]:
+        match = self.regex.match(content)
+        if not match:
+            return None
+        else:
+            values = []
+            for group in range(1, len(self.fields) + 1):
+                unparsed = match.group(group)
+                year_match = _GROUP_YEAR_RE.match(unparsed)
+                assert year_match is not None
+                start, end = year_match.groups()
+                start_int = int(start)
+                end_int = int(start if end is None else end)
+                values.append(Years(start_int, end_int))
+            return tuple(values)
 
 
 def make_template_parser(template: str) -> TemplateParser:

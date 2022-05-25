@@ -49,6 +49,11 @@ def check_file(
         return CheckResult(
             up_to_date, content, header_def, updated_values, parsed_values
         )
+    except OSError as err:
+        logger.error("%s (%s): %s", err, type(err).__name__, path)
+        return CheckResult(
+            up_to_date, content, header_def, updated_values, parsed_values
+        )
 
     header_def = cfg.header_for_path(path)
     if not header_def:

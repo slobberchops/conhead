@@ -69,6 +69,29 @@ class TestCheckFile:
         )
 
     @staticmethod
+    def test_oserror(logger, conhead_config, caplog, monkeypatch):
+        def fake_open(*args, **kwargs):
+            raise TimeoutError("timeout error")
+
+        monkeypatch.setattr(pathlib.Path, "open", fake_open)
+
+        result = process_module.check_file(
+            conhead_config, NOW, logger, "src/unknown.ext1"
+        )
+        assert not result.up_to_date
+        assert result.content is None
+        assert result.updated_values is None
+        assert result.header_def is None
+
+        process, not_found = caplog.record_tuples
+        assert process == ("test", logging.INFO, "process src/unknown.ext1")
+        assert not_found == (
+            "test",
+            logging.ERROR,
+            "timeout error (TimeoutError): src/unknown.ext1",
+        )
+
+    @staticmethod
     def test_unmatched(conhead_config, logger, source_dir, caplog):
         result = process_module.check_file(
             conhead_config, NOW, logger, "src/unmatched.unknown"

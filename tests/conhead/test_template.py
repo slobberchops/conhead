@@ -9,12 +9,12 @@ def test_iterate_years():
     assert tuple(template.Years(2014, 2019)) == (2014, 2019)
 
 
-class TestTemplateParser:
+class TestHeaderParser:
     class TestParseFields:
         @staticmethod
         @pytest.fixture
-        def template_parser() -> template.TemplateParser:
-            return template.TemplateParser(
+        def template_parser() -> template.HeaderParser:
+            return template.HeaderParser(
                 fields=(template.FieldKind.YEAR, template.FieldKind.YEAR),
                 regex=re.compile("^test (.*) test (.*)"),
             )

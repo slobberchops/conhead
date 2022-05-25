@@ -47,7 +47,7 @@ class Header:
         return re.compile(rf"\.(?:{pattern})$")
 
     @functools.cached_property
-    def parser(self) -> template_module.TemplateParser:
+    def parser(self) -> template_module.HeaderParser:
         return template_module.make_template_parser(self.template)
 
     @classmethod

@@ -52,7 +52,7 @@ class ParsedValues:
 
 
 @dataclasses.dataclass(frozen=True)
-class TemplateParser:
+class HeaderParser:
     fields: tuple[FieldKind, ...]
     regex: re.Pattern
 
@@ -109,7 +109,7 @@ def tokenize_template(template: str) -> Iterator[Token]:
         column += len(content_value)
 
 
-def make_template_parser(template: str) -> TemplateParser:
+def make_template_parser(template: str) -> HeaderParser:
     pattern = io.StringIO()
     pattern.write("^")
     groups = []
@@ -121,4 +121,4 @@ def make_template_parser(template: str) -> TemplateParser:
             pattern.write(re.escape(value[1:]))
         else:
             pattern.write(re.escape(value))
-    return TemplateParser(tuple(groups), re.compile(pattern.getvalue()))
+    return HeaderParser(tuple(groups), re.compile(pattern.getvalue()))

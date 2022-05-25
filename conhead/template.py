@@ -29,12 +29,6 @@ _TOKENIZER_RE = re.compile("|".join(f"(?P<{t.name}>{t.value})" for t in TokenKin
 _YEAR_RE = re.compile(r"\d{4}(?:-\d{4})?")
 
 
-@dataclasses.dataclass
-class Template:
-    template: str
-    regex: re.Pattern
-
-
 def tokenize_template(template: str) -> Iterator[Token]:
     line = 1
     column = 1

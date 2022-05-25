@@ -52,8 +52,3 @@ reportUnknownLambdaType = true
 reportInvalidTypeVarUse = true
 reportUnnecessaryCast = true
 reportUnsupportedDunderAll = true
-
-[tool.conhead.header.py]
-template="""
-    # line 1 {{YEAR}}
-"""

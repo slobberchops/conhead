@@ -74,3 +74,28 @@ def check_file(
     logger.info("up to date: %s", path)
     up_to_date = True
     return CheckResult(up_to_date, content, header_def, None, parsed_values)
+
+
+def rewrite_file(
+    path: Union[pathlib.Path, str],
+    logger: logging.Logger,
+    content: str,
+    header_def: config.HeaderDef,
+    field_values: template.FieldValues,
+    parsed_values: Optional[template.ParsedValues],
+) -> bool:
+    if isinstance(path, str):
+        path = pathlib.Path(path)
+
+    logger.info("rewriting: %s", path)
+    if parsed_values:
+        header_len = len(parsed_values.header)
+        headerless_content = content[header_len:]
+    else:
+        headerless_content = content
+
+    with path.open("w") as source_file:
+        template.write_header(header_def.template, field_values, source_file)
+        source_file.write(headerless_content)
+
+    return True

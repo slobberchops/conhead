@@ -51,20 +51,20 @@ class TestHeader:
         assert match.lastgroup == "grp00000"
 
     @staticmethod
-    def test_mark_map():
+    def test_field_map():
         cfg = config.Header(
             name="test",
             template="test {{YEAR}} test {{YEAR}}",
             extensions=("ext1", "ext2"),
         )
-        assert cfg.mark_map == util.FrozenDict(
+        assert cfg.field_map == util.FrozenDict(
             {
-                "grp00000": template.MarkKind.YEAR,
-                "grp00001": template.MarkKind.YEAR,
+                "grp00000": template.FieldKind.YEAR,
+                "grp00001": template.FieldKind.YEAR,
             }
         )
 
-    class TestParseMarks:
+    class TestParseFields:
         @staticmethod
         @pytest.fixture
         def config_header() -> config.Header:
@@ -76,13 +76,13 @@ class TestHeader:
 
         @staticmethod
         def test_single_years(config_header):
-            year1, year2 = config_header.parse_marks("test 2014 test 2015")
+            year1, year2 = config_header.parse_fields("test 2014 test 2015")
             assert year1 == (2014, 2014)
             assert year2 == (2015, 2015)
 
         @staticmethod
         def test_year_range(config_header):
-            year1, year2 = config_header.parse_marks("test 2014-2016 test 2015-2019")
+            year1, year2 = config_header.parse_fields("test 2014-2016 test 2015-2019")
             assert year1 == (2014, 2016)
             assert year2 == (2015, 2019)
 

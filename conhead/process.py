@@ -30,13 +30,13 @@ def check_file(
         logger.error("no header def for: %s", path)
         return False
 
-    mark_data = header.parse_marks(content)
-    if mark_data is None:
+    field_values = header.parse_fields(content)
+    if field_values is None:
         logger.warning("missing header: %s", path)
         return False
 
-    updated_dates = tuple((d[0], now.year) for d in mark_data)
-    if updated_dates != mark_data:
+    updated_dates = tuple((d[0], now.year) for d in field_values)
+    if updated_dates != field_values:
         logger.warning("header out of date: %s", path)
         return False
 

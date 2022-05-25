@@ -92,8 +92,8 @@ class TestMakeTemplateRe:
             "line 1 {{YEAR}}.\nline 2 {{YEAR}}."
         )
         assert groups == {
-            "grp00000": template.MarkKind.YEAR,
-            "grp00001": template.MarkKind.YEAR,
+            "grp00000": template.FieldKind.YEAR,
+            "grp00001": template.FieldKind.YEAR,
         }
 
         match = template_re.match("line 1 2014.\nline 2 2014-2018.")

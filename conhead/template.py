@@ -9,7 +9,7 @@ class TemplateError(Exception):
     """Raised when template contains error."""
 
 
-class MarkKind(enum.Enum):
+class FieldKind(enum.Enum):
     YEAR = "year"
 
 
@@ -71,7 +71,7 @@ def tokenize_template(template: str) -> Iterator[Token]:
         column += len(content_value)
 
 
-TemplateRe = tuple[dict[str, MarkKind], re.Pattern]
+TemplateRe = tuple[dict[str, FieldKind], re.Pattern]
 
 
 def make_template_re(template: str) -> TemplateRe:
@@ -82,7 +82,7 @@ def make_template_re(template: str) -> TemplateRe:
         if kind is TokenKind.YEAR:
             group_name = f"grp{len(groups):05}"
             pattern.write(f"(?P<{group_name}>{_YEAR_RE.pattern})")
-            groups[group_name] = MarkKind.YEAR
+            groups[group_name] = FieldKind.YEAR
         elif kind is TokenKind.ESCAPED:
             pattern.write(re.escape(value[1:]))
         else:

@@ -11,7 +11,7 @@ from conhead import template as template_module
 from conhead import util
 
 DateRange = tuple[int, int]
-MarkData = tuple[DateRange, ...]
+FieldValues = tuple[DateRange, ...]
 
 
 class ConfigError(Exception):
@@ -60,16 +60,16 @@ class Header:
         return self._template_re[1]
 
     @functools.cached_property
-    def mark_map(self) -> util.FrozenDict[template_module.MarkKind]:
+    def field_map(self) -> util.FrozenDict[template_module.FieldKind]:
         return util.FrozenDict(self._template_re[0])
 
-    def parse_marks(self, content: str) -> Optional[MarkData]:
+    def parse_fields(self, content: str) -> Optional[FieldValues]:
         match = self.template_re.match(content)
         if not match:
             return None
         else:
             values = []
-            for group in self.mark_map.keys():
+            for group in self.field_map.keys():
                 unparsed = match.group(group)
                 year_match = _GROUP_YEAR_RE.match(unparsed)
                 assert year_match is not None

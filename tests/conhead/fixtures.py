@@ -1,3 +1,6 @@
+# Copyright 2022 Rafe Kaplan
+# SPDX-License-Identifier: Apache-2.0
+
 import pytest
 
 from tests.conhead import file_testing

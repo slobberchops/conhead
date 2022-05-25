@@ -1,3 +1,6 @@
+# Copyright 2022 Rafe Kaplan
+# SPDX-License-Identifier: Apache-2.0
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.2.0
@@ -31,6 +34,12 @@ repos:
         language: system
         entry: poetry run black
         types: [python]
+
+      - id: license
+        name: apply licenses
+        language: system
+        entry: poetry run conhead
+        files: \.(py|toml|yaml)$
 
       - id: lint
         name: lint

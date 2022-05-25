@@ -1,3 +1,6 @@
+# Copyright 2022 Rafe Kaplan
+# SPDX-License-Identifier: Apache-2.0
+
 [tool.poetry]
 name = "consistent-header"
 version = "0.1.0"

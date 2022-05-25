@@ -5,6 +5,10 @@ import pytest
 from conhead import template
 
 
+def test_iterate_years():
+    assert tuple(template.Years(2014, 2019)) == (2014, 2019)
+
+
 class TestTemplateParser:
     class TestParseFields:
         @staticmethod

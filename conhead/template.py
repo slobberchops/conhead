@@ -45,6 +45,28 @@ class Years:
 FieldValues = tuple[Years, ...]
 
 
+@dataclasses.dataclass(frozen=True)
+class TemplateParser:
+    fields: tuple[FieldKind, ...]
+    regex: re.Pattern
+
+    def parse_fields(self, content: str) -> Optional[FieldValues]:
+        match = self.regex.match(content)
+        if not match:
+            return None
+        else:
+            values = []
+            for group in range(1, len(self.fields) + 1):
+                unparsed = match.group(group)
+                year_match = _GROUP_YEAR_RE.match(unparsed)
+                assert year_match is not None
+                start, end = year_match.groups()
+                start_int = int(start)
+                end_int = int(start if end is None else end)
+                values.append(Years(start_int, end_int))
+            return tuple(values)
+
+
 def tokenize_template(template: str) -> Iterator[Token]:
     line = 1
     column = 1
@@ -79,28 +101,6 @@ def tokenize_template(template: str) -> Iterator[Token]:
     if content_value:
         yield TokenKind.CONTENT, content_value, line, column
         column += len(content_value)
-
-
-@dataclasses.dataclass(frozen=True)
-class TemplateParser:
-    fields: tuple[FieldKind, ...]
-    regex: re.Pattern
-
-    def parse_fields(self, content: str) -> Optional[FieldValues]:
-        match = self.regex.match(content)
-        if not match:
-            return None
-        else:
-            values = []
-            for group in range(1, len(self.fields) + 1):
-                unparsed = match.group(group)
-                year_match = _GROUP_YEAR_RE.match(unparsed)
-                assert year_match is not None
-                start, end = year_match.groups()
-                start_int = int(start)
-                end_int = int(start if end is None else end)
-                values.append(Years(start_int, end_int))
-            return tuple(values)
 
 
 def make_template_parser(template: str) -> TemplateParser:

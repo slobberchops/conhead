@@ -46,11 +46,17 @@ FieldValues = tuple[Years, ...]
 
 
 @dataclasses.dataclass(frozen=True)
+class ParsedValues:
+    fields: FieldValues
+    header: str
+
+
+@dataclasses.dataclass(frozen=True)
 class TemplateParser:
     fields: tuple[FieldKind, ...]
     regex: re.Pattern
 
-    def parse_fields(self, content: str) -> Optional[FieldValues]:
+    def parse_fields(self, content: str) -> Optional[ParsedValues]:
         match = self.regex.match(content)
         if not match:
             return None
@@ -64,7 +70,7 @@ class TemplateParser:
                 start_int = int(start)
                 end_int = int(start if end is None else end)
                 values.append(Years(start_int, end_int))
-            return tuple(values)
+            return ParsedValues(tuple(values), match.group(0))
 
 
 def tokenize_template(template: str) -> Iterator[Token]:

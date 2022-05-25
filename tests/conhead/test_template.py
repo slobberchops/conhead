@@ -20,20 +20,26 @@ class TestTemplateParser:
             )
 
         @staticmethod
+        def test_non_matching_template(template_parser):
+            assert template_parser.parse_fields("has no header") is None
+
+        @staticmethod
         def test_single_years(template_parser):
-            year1, year2 = template_parser.parse_fields("test 2014 test 2015")
+            values = template_parser.parse_fields("test 2014 test 2015\ncontent")
+            year1, year2 = values.fields
             assert year1 == template.Years(2014, 2014)
             assert year2 == template.Years(2015, 2015)
+            assert values.header == "test 2014 test 2015"
 
         @staticmethod
         def test_year_range(template_parser):
-            year1, year2 = template_parser.parse_fields("test 2014-2016 test 2015-2019")
+            values = template_parser.parse_fields(
+                "test 2014-2016 test 2015-2019\n content"
+            )
+            year1, year2 = values.fields
             assert year1 == template.Years(2014, 2016)
             assert year2 == template.Years(2015, 2019)
-
-        @staticmethod
-        def test_matching_header(template_parser):
-            ...
+            assert values.header == "test 2014-2016 test 2015-2019"
 
 
 class TestTokenizeTemplate:

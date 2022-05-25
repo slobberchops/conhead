@@ -28,10 +28,10 @@ class TestDeindentString:
         )
 
 
-class TestHeader:
+class TestHeaderDef:
     @staticmethod
     def test_extensions_re():
-        cfg = config.Header(name="test", template="", extensions=("ext1", "ext2"))
+        cfg = config.HeaderDef(name="test", template="", extensions=("ext1", "ext2"))
         regex = cfg.extensions_re
         assert regex.pattern == r"\.(?:ext1|ext2)$"
         assert regex.search("path1/path2/file.ext1")
@@ -39,7 +39,7 @@ class TestHeader:
 
     @staticmethod
     def test_parser():
-        cfg = config.Header(
+        cfg = config.HeaderDef(
             name="test", template="test {{YEAR}} test", extensions=("ext1", "ext2")
         )
         assert cfg.parser.regex.pattern == "^test\\ (\\d{4}(?:-\\d{4})?)\\ test"
@@ -155,9 +155,9 @@ class TestHeader:
         )
         def test_default_extensions(conhead_config):
             assert conhead_config == config.Config(
-                headers=util.FrozenDict(
+                header_defs=util.FrozenDict(
                     {
-                        "py": config.Header(
+                        "py": config.HeaderDef(
                             name="py",
                             template="Template line 1\nTemplate line 2\n",
                             extensions=("py",),
@@ -182,9 +182,9 @@ class TestHeader:
         )
         def test_explicit_extensions(conhead_config):
             assert conhead_config == config.Config(
-                headers=util.FrozenDict(
+                header_defs=util.FrozenDict(
                     {
-                        "py": config.Header(
+                        "py": config.HeaderDef(
                             name="py",
                             template="Template line 1\nTemplate line 2\n",
                             extensions=("ext1", "ext2"),
@@ -257,19 +257,19 @@ class TestConfig:
             def test_found_header(conhead_config):
                 header = conhead_config.header_for_path("path1/path2/file.ext1")
                 assert header
-                assert header is conhead_config.headers["header1"]
+                assert header is conhead_config.header_defs["header1"]
 
                 header = conhead_config.header_for_path("path1/path2/file.ext2")
                 assert header
-                assert header is conhead_config.headers["header1"]
+                assert header is conhead_config.header_defs["header1"]
 
                 header = conhead_config.header_for_path("path1/path2/file.ext3")
                 assert header
-                assert header is conhead_config.headers["header2"]
+                assert header is conhead_config.header_defs["header2"]
 
                 header = conhead_config.header_for_path("path1/path2/file.ext4")
                 assert header
-                assert header is conhead_config.headers["header2"]
+                assert header is conhead_config.header_defs["header2"]
 
     class TestFromDict:
         @staticmethod
@@ -346,7 +346,7 @@ class TestConfig:
         @pytest.mark.parametrize("pyproject_toml", ["other-options = 10"])
         def test_no_definitions():
             loaded = config.load()
-            assert loaded == config.Config(headers=util.FrozenDict())
+            assert loaded == config.Config(header_defs=util.FrozenDict())
 
 
 class TestFindPyproject:
@@ -427,12 +427,12 @@ class TestLoad:
     def test_success():
         conhead_config = config.load()
         assert conhead_config
-        assert conhead_config.headers.keys() == {"py", "toml"}
+        assert conhead_config.header_defs.keys() == {"py", "toml"}
 
-        assert conhead_config.headers["py"] == config.Header(
+        assert conhead_config.header_defs["py"] == config.HeaderDef(
             name="py", template="# Python header\n# License X\n", extensions=("py",)
         )
-        assert conhead_config.headers["toml"] == config.Header(
+        assert conhead_config.header_defs["toml"] == config.HeaderDef(
             name="toml",
             template="# Toml header\n# License X\n",
             extensions=("toml",),

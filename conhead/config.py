@@ -36,7 +36,7 @@ def deindent_string(s: str):
 
 
 @dataclasses.dataclass(frozen=True)
-class Header:
+class HeaderDef:
     name: str
     template: str
     extensions: tuple[str, ...]
@@ -80,13 +80,13 @@ class Header:
 
 @dataclasses.dataclass(frozen=True)
 class Config:
-    headers: util.FrozenDict[Header]
+    header_defs: util.FrozenDict[HeaderDef]
 
     @functools.cached_property
     def extensions_re(self) -> Optional[re.Pattern]:
         groups = [
             rf"(?P<{header.name}>{header.extensions_re.pattern})"
-            for header in self.headers.values()
+            for header in self.header_defs.values()
         ]
         pattern = "|".join(groups)
         if pattern:
@@ -94,14 +94,14 @@ class Config:
         else:
             return None
 
-    def header_for_path(self, path: pathlib.Path) -> Optional[Header]:
+    def header_for_path(self, path: pathlib.Path) -> Optional[HeaderDef]:
         if not self.extensions_re:
             return None
 
         match = self.extensions_re.search(str(path))
         if match:
             group = match.lastgroup
-            return self.headers[group]
+            return self.header_defs[group]
         else:
             return None
 
@@ -114,7 +114,7 @@ class Config:
         for name, header_dct in headers_dct.items():
             if not isinstance(header_dct, dict):
                 raise ConfigError(f"tool.conhead.header.{name} must be section")
-            headers[name] = Header.from_dict(name, header_dct)
+            headers[name] = HeaderDef.from_dict(name, header_dct)
         unexpected_options = ", ".join(
             sorted(k for (k, v) in dct.items() if not isinstance(v, dict))
         )
@@ -125,7 +125,7 @@ class Config:
         )
         if unexpected_sections:
             raise ConfigError(f"unexpected sections: {unexpected_sections}")
-        return Config(headers=util.FrozenDict(headers))
+        return Config(header_defs=util.FrozenDict(headers))
 
 
 def find_pyproject() -> Optional[pathlib.Path]:

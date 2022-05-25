@@ -33,7 +33,7 @@ class TestCheckFile:
         )
         assert not result.up_to_date
         assert result.updated_values is None
-        assert result.header is None
+        assert result.header_def is None
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/unknown.ext1")
@@ -50,7 +50,7 @@ class TestCheckFile:
         )
         assert not result.up_to_date
         assert result.updated_values is None
-        assert result.header is None
+        assert result.header_def is None
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/unreadable.ext1")
@@ -67,7 +67,7 @@ class TestCheckFile:
         )
         assert not result.up_to_date
         assert result.updated_values is None
-        assert result.header is None
+        assert result.header_def is None
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/unmatched.unknown")
@@ -84,7 +84,7 @@ class TestCheckFile:
         )
         assert not result.up_to_date
         assert result.updated_values is None
-        assert result.header is conhead_config.headers["header1"]
+        assert result.header_def is conhead_config.header_defs["header1"]
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/empty.ext1")
@@ -101,7 +101,7 @@ class TestCheckFile:
         )
         assert not result.up_to_date
         assert result.updated_values is None
-        assert result.header is conhead_config.headers["header2"]
+        assert result.header_def is conhead_config.header_defs["header2"]
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/no-header.ext3")
@@ -121,7 +121,7 @@ class TestCheckFile:
         years1, years2 = result.updated_values
         assert years1 == template.Years(2018, 2019)
         assert years2 == template.Years(2014, 2019)
-        assert result.header is conhead_config.headers["header2"]
+        assert result.header_def is conhead_config.header_defs["header2"]
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/out-of-date.ext4")
@@ -138,7 +138,7 @@ class TestCheckFile:
         )
         assert result.up_to_date
         assert result.updated_values is None
-        assert result.header is conhead_config.headers["header1"]
+        assert result.header_def is conhead_config.header_defs["header1"]
 
         process, up_to_date = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/up-to-date.ext2")

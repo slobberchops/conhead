@@ -44,8 +44,8 @@ def main(paths, check, verbose, quiet):
             logger.error("only --check is supported")
             sys.exit(1)
 
-        cfg = config.load() or config.Config(headers=util.FrozenDict())
-        if not cfg.headers:
+        cfg = config.load() or config.Config(header_defs=util.FrozenDict())
+        if not cfg.header_defs:
             logger.error("no header configuration defined")
             sys.exit(1)
 

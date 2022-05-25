@@ -53,7 +53,8 @@ def main(paths, check, verbose, quiet):
 
         error = False
         for path in (pathlib.Path(p) for p in paths):
-            error |= not process.check_file(cfg, now, logger, path)
+            up_to_date, _ = process.check_file(cfg, now, logger, path)
+            error |= not up_to_date
 
         if error:
             sys.exit(1)

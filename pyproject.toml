@@ -53,7 +53,8 @@ reportInvalidTypeVarUse = true
 reportUnnecessaryCast = true
 reportUnsupportedDunderAll = true
 
-[tool.conhead.header.py]
+[tool.conhead.header.pylike]
+extensions = ['py', 'toml', 'yaml']
 template="""
 # Copyright {{YEAR}} Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0

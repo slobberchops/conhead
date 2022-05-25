@@ -97,8 +97,15 @@ def rewrite_file(
     else:
         headerless_content = content
 
-    with path.open("w") as source_file:
-        template.write_header(header_def.template, field_values, source_file)
-        source_file.write(headerless_content)
+    try:
+        with path.open("w") as source_file:
+            template.write_header(header_def.template, field_values, source_file)
+            source_file.write(headerless_content)
+    except PermissionError:
+        logger.error("unwritable: %s", path)
+        return False
+    except OSError as err:
+        logger.error("%s (%s): %s", err, type(err).__name__, path)
+        return False
 
     return True

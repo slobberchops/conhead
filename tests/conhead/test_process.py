@@ -4,6 +4,7 @@
 import datetime
 import logging
 import pathlib
+import stat
 from typing import Iterator
 
 import pytest
@@ -162,6 +163,48 @@ class TestCheckFile:
 
 
 class TestRewriteFile:
+    @staticmethod
+    def test_unwritable(conhead_config, logger, caplog):
+        header_def = conhead_config.header_defs["header1"]
+        field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
+
+        path = pathlib.Path("result.ext1")
+        path.write_text("")
+        path.chmod(stat.S_IREAD)
+
+        assert not process_module.rewrite_file(
+            "result.ext1", logger, "end of file\n", header_def, field_values, None
+        )
+
+        empty = pathlib.Path("result.ext1").read_text()
+        assert empty == ""
+
+        process, error = caplog.record_tuples
+        assert process == ("test", logging.INFO, "rewriting: result.ext1")
+        assert error == ("test", logging.ERROR, "unwritable: result.ext1")
+
+    @staticmethod
+    def test_oserror(conhead_config, logger, caplog, monkeypatch):
+        header_def = conhead_config.header_defs["header1"]
+        field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
+
+        def fake_open(*args, **kwargs):
+            raise TimeoutError("timeout error")
+
+        monkeypatch.setattr(pathlib.Path, "open", fake_open)
+
+        assert not process_module.rewrite_file(
+            "result.ext1", logger, "end of file\n", header_def, field_values, None
+        )
+
+        process, error = caplog.record_tuples
+        assert process == ("test", logging.INFO, "rewriting: result.ext1")
+        assert error == (
+            "test",
+            logging.ERROR,
+            "timeout error (TimeoutError): result.ext1",
+        )
+
     @staticmethod
     def test_all_new(conhead_config, logger, caplog):
         header_def = conhead_config.header_defs["header1"]

@@ -3,6 +3,7 @@
 
 import os
 import pathlib
+import stat
 from typing import Union
 
 from conhead import config
@@ -34,9 +35,9 @@ def write_content(path: pathlib.Path, content: DirEntry):
         write_content(path, content.content)
         mode = 0
         if content.read:
-            mode |= os.O_RDONLY
+            mode |= stat.S_IREAD
         if content.write:
-            mode |= os.O_WRONLY
+            mode |= stat.S_IWRITE
         os.chmod(path, mode)
     elif content is None:
         pass

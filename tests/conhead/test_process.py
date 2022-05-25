@@ -79,7 +79,7 @@ class TestCheckFile:
         assert not_found == (
             "test",
             logging.ERROR,
-            "no header def for: src/unmatched.unknown",
+            "no header def: src/unmatched.unknown",
         )
 
     @staticmethod
@@ -136,7 +136,7 @@ class TestCheckFile:
         assert not_found == (
             "test",
             logging.WARNING,
-            "header out of date: src/out-of-date.ext4",
+            "out of date: src/out-of-date.ext4",
         )
 
     @staticmethod

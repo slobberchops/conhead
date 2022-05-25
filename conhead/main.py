@@ -9,6 +9,7 @@ import click
 
 from conhead import config
 from conhead import process
+from conhead import template
 from conhead import util
 
 
@@ -40,10 +41,6 @@ def naive_now() -> datetime.datetime:
 @click.option("--quiet", "-q", count=True)
 def main(paths, check, verbose, quiet):
     with conhead_logger(verbose, quiet) as logger:
-        if not check:
-            logger.error("only --check is supported")
-            sys.exit(1)
-
         cfg = config.load() or config.Config(header_defs=util.FrozenDict())
         if not cfg.header_defs:
             logger.error("no header configuration defined")
@@ -55,6 +52,26 @@ def main(paths, check, verbose, quiet):
         for path in (pathlib.Path(p) for p in paths):
             result = process.check_file(cfg, now, logger, path)
             error |= not result.up_to_date
+            if check or result.up_to_date or not result.header_def:
+                continue
+
+            if result.updated_values:
+                values = result.updated_values
+            else:
+                values = tuple(
+                    template.Years(now.year, now.year)
+                    for _ in result.header_def.parser.fields
+                )
+
+            assert result.content
+            error |= process.rewrite_file(
+                path,
+                logger,
+                result.content,
+                result.header_def,
+                values,
+                result.parsed_values,
+            )
 
         if error:
             sys.exit(1)

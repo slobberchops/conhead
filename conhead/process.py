@@ -49,7 +49,7 @@ def check_file(
 
     header_def = cfg.header_for_path(path)
     if not header_def:
-        logger.error("no header def for: %s", path)
+        logger.error("no header def: %s", path)
         return CheckResult(
             up_to_date, content, header_def, updated_values, parsed_values
         )
@@ -65,7 +65,7 @@ def check_file(
         conhead.template.Years(d.start, now.year) for d in parsed_values.fields
     )
     if updated_values != parsed_values.fields:
-        logger.warning("header out of date: %s", path)
+        logger.warning("out of date: %s", path)
         updated_values = updated_values
         return CheckResult(
             up_to_date, content, header_def, updated_values, parsed_values

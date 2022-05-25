@@ -1,5 +1,6 @@
 import datetime
 import logging
+import pathlib
 
 import pytest
 
@@ -47,17 +48,9 @@ class TestMain:
     pyproject_toml = staticmethod(fixtures.populated_pyproject_toml)
 
     @staticmethod
-    def test_not_check(cli_runner, caplog):
-        result = cli_runner.invoke(main.main, [])
-        assert result.exit_code == 1
-
-        (record,) = caplog.record_tuples
-        assert record == ("conhead", logging.ERROR, "only --check is supported")
-
-    @staticmethod
     @pytest.mark.parametrize("pyproject_toml", [None])
     def test_no_config(cli_runner, caplog):
-        result = cli_runner.invoke(main.main, ["--check"])
+        result = cli_runner.invoke(main.main, [])
         assert result.exit_code == 1
 
         (record,) = caplog.record_tuples
@@ -69,9 +62,7 @@ class TestMain:
 
     @staticmethod
     def test_no_errors(cli_runner, caplog):
-        result = cli_runner.invoke(
-            main.main, ["--check", "-vvv", "src/up-to-date.ext2"]
-        )
+        result = cli_runner.invoke(main.main, ["-vvv", "src/up-to-date.ext2"])
         assert result.exit_code == 0
 
         process, up_to_date = caplog.record_tuples
@@ -83,7 +74,20 @@ class TestMain:
         )
 
     @staticmethod
-    def test_has_errors(cli_runner, caplog):
+    def test_no_header_def(cli_runner, caplog):
+        result = cli_runner.invoke(main.main, ["-vvv", "src/unmatched.unknown"])
+        assert result.exit_code == 1
+
+        process, no_header_def = caplog.record_tuples
+        assert process == ("conhead", logging.INFO, "process src/unmatched.unknown")
+        assert no_header_def == (
+            "conhead",
+            logging.ERROR,
+            "no header def: src/unmatched.unknown",
+        )
+
+    @staticmethod
+    def test_has_errors_check(cli_runner, caplog):
         result = cli_runner.invoke(
             main.main,
             ["--check", "-vvv", "src/up-to-date.ext2", "src/out-of-date.ext4"],
@@ -101,8 +105,48 @@ class TestMain:
         assert error == (
             "conhead",
             logging.WARNING,
-            "header out of date: src/out-of-date.ext4",
+            "out of date: src/out-of-date.ext4",
         )
+
+    @staticmethod
+    def test_no_header(cli_runner, caplog):
+        result = cli_runner.invoke(
+            main.main,
+            ["-vvv", "src/no-header.ext3"],
+        )
+        assert result.exit_code == 1
+
+        rewritten = pathlib.Path("src/no-header.ext3").read_text()
+        assert rewritten == "// line 1 2019\n// line 2 2019\n// No proper header\n"
+
+        load, error, write = caplog.record_tuples
+        assert load == ("conhead", logging.INFO, "process src/no-header.ext3")
+        assert error == (
+            "conhead",
+            logging.WARNING,
+            "missing header: src/no-header.ext3",
+        )
+        assert write == ("conhead", logging.INFO, "rewriting: src/no-header.ext3")
+
+    @staticmethod
+    def test_out_of_date(cli_runner, caplog):
+        result = cli_runner.invoke(
+            main.main,
+            ["-vvv", "src/out-of-date.ext4"],
+        )
+        assert result.exit_code == 1
+
+        rewritten = pathlib.Path("src/out-of-date.ext4").read_text()
+        assert rewritten == "// line 1 2018-2019\n// line 2 2014-2019\ncontent\n"
+
+        load, error, write = caplog.record_tuples
+        assert load == ("conhead", logging.INFO, "process src/out-of-date.ext4")
+        assert error == (
+            "conhead",
+            logging.WARNING,
+            "out of date: src/out-of-date.ext4",
+        )
+        assert write == ("conhead", logging.INFO, "rewriting: src/out-of-date.ext4")
 
     @staticmethod
     def test_quiet(cli_runner, caplog):

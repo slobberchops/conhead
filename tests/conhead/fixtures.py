@@ -38,5 +38,6 @@ def populated_source_dir() -> file_testing.DirContent:
         "out-of-date.ext4": """\
                 // line 1 2018
                 // line 2 2014-2018
+                content
             """,
     }

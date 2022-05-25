@@ -28,11 +28,12 @@ class TestCheckFile:
 
     @staticmethod
     def test_file_not_found(logger, conhead_config, caplog):
-        up_to_date, updated_fields = conhead.process.check_file(
+        result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/unknown.ext1"
         )
-        assert not up_to_date
-        assert updated_fields is None
+        assert not result.up_to_date
+        assert result.updated_values is None
+        assert result.header is None
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/unknown.ext1")
@@ -44,11 +45,12 @@ class TestCheckFile:
 
     @staticmethod
     def test_not_readable(logger, conhead_config, caplog):
-        up_to_date, updated_fields = conhead.process.check_file(
+        result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/unreadable.ext1"
         )
-        assert not up_to_date
-        assert updated_fields is None
+        assert not result.up_to_date
+        assert result.updated_values is None
+        assert result.header is None
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/unreadable.ext1")
@@ -60,11 +62,12 @@ class TestCheckFile:
 
     @staticmethod
     def test_unmatched(conhead_config, logger, caplog):
-        up_to_date, updated_fields = conhead.process.check_file(
+        result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/unmatched.unknown"
         )
-        assert not up_to_date
-        assert updated_fields is None
+        assert not result.up_to_date
+        assert result.updated_values is None
+        assert result.header is None
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/unmatched.unknown")
@@ -76,11 +79,12 @@ class TestCheckFile:
 
     @staticmethod
     def test_empty(conhead_config, logger, caplog):
-        up_to_date, updated_fields = conhead.process.check_file(
+        result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/empty.ext1"
         )
-        assert not up_to_date
-        assert updated_fields is None
+        assert not result.up_to_date
+        assert result.updated_values is None
+        assert result.header is conhead_config.headers["header1"]
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/empty.ext1")
@@ -92,11 +96,12 @@ class TestCheckFile:
 
     @staticmethod
     def test_no_header(conhead_config, logger, caplog):
-        up_to_date, updated_fields = conhead.process.check_file(
+        result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/no-header.ext3"
         )
-        assert not up_to_date
-        assert updated_fields is None
+        assert not result.up_to_date
+        assert result.updated_values is None
+        assert result.header is conhead_config.headers["header2"]
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/no-header.ext3")
@@ -108,14 +113,15 @@ class TestCheckFile:
 
     @staticmethod
     def test_out_of_date(conhead_config, logger, caplog):
-        up_to_date, updated_fields = conhead.process.check_file(
+        result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/out-of-date.ext4"
         )
-        assert not up_to_date
-        assert updated_fields
-        years1, years2 = updated_fields
+        assert not result.up_to_date
+        assert result.updated_values
+        years1, years2 = result.updated_values
         assert years1 == template.Years(2018, 2019)
         assert years2 == template.Years(2014, 2019)
+        assert result.header is conhead_config.headers["header2"]
 
         process, not_found = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/out-of-date.ext4")
@@ -127,11 +133,12 @@ class TestCheckFile:
 
     @staticmethod
     def test_up_to_date(conhead_config, logger, caplog):
-        up_to_date, updated_fields = conhead.process.check_file(
+        result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/up-to-date.ext2"
         )
-        assert up_to_date
-        assert updated_fields is None
+        assert result.up_to_date
+        assert result.updated_values is None
+        assert result.header is conhead_config.headers["header1"]
 
         process, up_to_date = caplog.record_tuples
         assert process == ("test", logging.INFO, "process src/up-to-date.ext2")

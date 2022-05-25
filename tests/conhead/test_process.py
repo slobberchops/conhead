@@ -5,6 +5,7 @@ from typing import Iterator
 import pytest
 
 import conhead.process
+from conhead import config
 from conhead import template
 from tests.conhead import fixtures
 
@@ -32,6 +33,7 @@ class TestCheckFile:
             conhead_config, NOW, logger, "src/unknown.ext1"
         )
         assert not result.up_to_date
+        assert result.content is None
         assert result.updated_values is None
         assert result.header_def is None
 
@@ -49,6 +51,7 @@ class TestCheckFile:
             conhead_config, NOW, logger, "src/unreadable.ext1"
         )
         assert not result.up_to_date
+        assert result.content is None
         assert result.updated_values is None
         assert result.header_def is None
 
@@ -61,11 +64,12 @@ class TestCheckFile:
         )
 
     @staticmethod
-    def test_unmatched(conhead_config, logger, caplog):
+    def test_unmatched(conhead_config, logger, source_dir, caplog):
         result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/unmatched.unknown"
         )
         assert not result.up_to_date
+        assert result.content == source_dir["unmatched.unknown"]
         assert result.updated_values is None
         assert result.header_def is None
 
@@ -78,11 +82,12 @@ class TestCheckFile:
         )
 
     @staticmethod
-    def test_empty(conhead_config, logger, caplog):
+    def test_empty(conhead_config, logger, source_dir, caplog):
         result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/empty.ext1"
         )
         assert not result.up_to_date
+        assert result.content == source_dir["empty.ext1"]
         assert result.updated_values is None
         assert result.header_def is conhead_config.header_defs["header1"]
 
@@ -95,11 +100,12 @@ class TestCheckFile:
         )
 
     @staticmethod
-    def test_no_header(conhead_config, logger, caplog):
+    def test_no_header(conhead_config, logger, source_dir, caplog):
         result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/no-header.ext3"
         )
         assert not result.up_to_date
+        assert result.content == config.deindent_string(source_dir["no-header.ext3"])
         assert result.updated_values is None
         assert result.header_def is conhead_config.header_defs["header2"]
 
@@ -112,11 +118,12 @@ class TestCheckFile:
         )
 
     @staticmethod
-    def test_out_of_date(conhead_config, logger, caplog):
+    def test_out_of_date(conhead_config, logger, source_dir, caplog):
         result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/out-of-date.ext4"
         )
         assert not result.up_to_date
+        assert result.content == config.deindent_string(source_dir["out-of-date.ext4"])
         assert result.updated_values
         years1, years2 = result.updated_values
         assert years1 == template.Years(2018, 2019)
@@ -132,11 +139,12 @@ class TestCheckFile:
         )
 
     @staticmethod
-    def test_up_to_date(conhead_config, logger, caplog):
+    def test_up_to_date(conhead_config, logger, source_dir, caplog):
         result = conhead.process.check_file(
             conhead_config, NOW, logger, "src/up-to-date.ext2"
         )
         assert result.up_to_date
+        assert result.content == config.deindent_string(source_dir["up-to-date.ext2"])
         assert result.updated_values is None
         assert result.header_def is conhead_config.header_defs["header1"]
 

@@ -35,7 +35,7 @@ def check_file(
         logger.warning("missing header: %s", path)
         return False
 
-    updated_dates = tuple((d[0], now.year) for d in field_values)
+    updated_dates = tuple(config.Years(d.start, now.year) for d in field_values)
     if updated_dates != field_values:
         logger.warning("header out of date: %s", path)
         return False

@@ -77,14 +77,14 @@ class TestHeader:
         @staticmethod
         def test_single_years(config_header):
             year1, year2 = config_header.parse_fields("test 2014 test 2015")
-            assert year1 == (2014, 2014)
-            assert year2 == (2015, 2015)
+            assert year1 == config.Years(2014, 2014)
+            assert year2 == config.Years(2015, 2015)
 
         @staticmethod
         def test_year_range(config_header):
             year1, year2 = config_header.parse_fields("test 2014-2016 test 2015-2019")
-            assert year1 == (2014, 2016)
-            assert year2 == (2015, 2019)
+            assert year1 == config.Years(2014, 2016)
+            assert year2 == config.Years(2015, 2019)
 
         @staticmethod
         def test_matching_header(config_header):

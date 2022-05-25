@@ -10,8 +10,18 @@ import tomli
 from conhead import template as template_module
 from conhead import util
 
-DateRange = tuple[int, int]
-FieldValues = tuple[DateRange, ...]
+
+@dataclasses.dataclass(frozen=True, order=True)
+class Years:
+    start: int
+    end: int
+
+    def __iter__(self):
+        yield self.start
+        yield self.end
+
+
+FieldValues = tuple[Years, ...]
 
 
 class ConfigError(Exception):
@@ -76,7 +86,7 @@ class Header:
                 start, end = year_match.groups()
                 start_int = int(start)
                 end_int = int(start if end is None else end)
-                values.append((start_int, end_int))
+                values.append(Years(start_int, end_int))
             return tuple(values)
 
     @classmethod

@@ -18,12 +18,12 @@ jobs:
         python-version: "3.9"
         architecture: x64
 
-    - name: Install Pipx
+    - name: Install Poetry
       run: pipx install --python python${{ matrix.python-version }} poetry
+    - name: Extract version from poetry
+      run: mkdir dist && poetry install --dry-run | grep -o 'conhead \(.*\)' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' > dist/VERSION
     - name: Build sdist
       run: poetry build -f sdist
-    - name: Extract version from poetry
-      run: poetry install --dry-run | grep -o 'conhead \(.*\)' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*') > dist/VERSION
 
     - run: echo RELEASE_VERSION=$(cat dist/VERSION)
     - run: python -m venv dist/test-installation

@@ -19,9 +19,11 @@ Conhead is available as the Python ``conhead`` package.
 For example, to install using `pipx`_:
 
 .. code-block:: python
+
     $ pipx install conhead
     $ conhead --help
     ... Usage: conhead [OPTIONS] SRC
+
 .. _pipx: https://github.com/pypa/pipx
 
 Configuration
@@ -36,6 +38,7 @@ to one or more file extensions.
 Example:
 
 .. code-block:: toml
+
     [tools.conhead.header.hashhead]
     extensions = ['py', 'toml', 'yaml']
     template = """

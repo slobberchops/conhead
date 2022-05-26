@@ -1,4 +1,4 @@
-name: Run pre-commit
+name: Release Python package
 
 on:
   push:
@@ -20,8 +20,9 @@ jobs:
 
     - run: pipx install --python python${{ matrix.python-version }} poetry
     - run: poetry build -f sdist
-    - run: export RELEASE_VERSION=$(poetry install --dry-run | grep -o 'conhead \(.*\)' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')
-    - run: echo RELEASE_VERSION=$RELEASE_VERSION
+    - run: mkdir dist
+    - run: export RELEASE_VERSION=$(poetry install --dry-run | grep -o 'conhead \(.*\)' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*') > dist/VERSION
+    - run: echo RELEASE_VERSION=$(cat dist/VERSION)
 #    - run: python -m venv dist/test-installation
 #    - run: dist/test-installation/bin/pip install
 #    - run: pre-commit run -a

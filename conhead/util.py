@@ -11,6 +11,10 @@ A = TypeVar("A")
 
 
 class FrozenDict(collections.abc.Hashable, collections.abc.Mapping[str, A]):
+    """
+    A read-only dictionary capable of being hashed.
+    """
+
     __dict: dict[str, A]
 
     def __init__(self, dct: Optional[Mapping[str, A]] = None, /, **kwargs):

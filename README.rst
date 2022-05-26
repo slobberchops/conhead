@@ -22,7 +22,7 @@ For example, to install using `pipx`_:
 
     $ pipx install conhead
     $ conhead --help
-    ... Usage: conhead [OPTIONS] SRC
+    Usage: conhead [OPTIONS] SRC
 
 .. _pipx: https://github.com/pypa/pipx
 
@@ -85,3 +85,34 @@ Notice a few things about the header template.
     the ``{{YEAR}}`` field replaced with ``2020`` if it was
     first written in ``2020``. When the header is then updated
     in ``2022``, this field is rewritten as ``2020-2022``.
+-   If you need to write some text that contains certain
+    characters used to describe fields, you must escape them.
+    Examples are ``\{``, ``\}`` and `\\`. These characters will
+    appear in the rendered header without the preceding slash.
+
+Usage
+-----
+
+Let's say there is a python file without a header at ``hello.py``:
+
+.. code-block:: python
+
+
+    def hello():
+        print("Greetings!")
+
+You can apply the ``hashhead`` header template defined in
+``pyproject.toml`` and view the results by:
+
+.. code-block:: shell
+
+    $ conhead hello.py
+    WARNING: missing header: hello.py
+
+    $ cat hello.py
+    # Copyright 2022 Organized Organization
+    # SPDX-License-Identifier: Apache-2.0
+
+
+    def hello():
+        print("Greetings!")

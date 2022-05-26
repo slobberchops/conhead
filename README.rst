@@ -116,3 +116,18 @@ You can apply the ``hashhead`` header template defined in
 
     def hello():
         print("Greetings!")
+
+``conhead`` will recognize the header if you apply it to ``hello.py``
+again and will not write a second header.
+
+.. code-block:: shell
+
+    $ conhead hello.py
+
+    $ cat hello.py
+    # Copyright 2022 Organized Organization
+    # SPDX-License-Identifier: Apache-2.0
+
+
+    def hello():
+        print("Greetings!")

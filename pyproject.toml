@@ -5,6 +5,7 @@
 name = "conhead"
 version = "0.1.0"
 description = "Python-based tool for keeping source file headers consistent."
+license = "Apache-2.0"
 authors = [
     "Rafe Kaplan",
 ]
@@ -47,6 +48,10 @@ pytest = "^7.1"
 
 [tool.poetry.scripts]
 conhead = "conhead.main:main"
+
+[tool.poetry.urls]
+"Changlog" = "https://github.com/slobberchops/conhead/blob/main/CHANGES.rst"
+"Issue Tracker" = "https://github.com/slobberchops/conhead/issues"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

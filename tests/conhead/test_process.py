@@ -31,10 +31,10 @@ def logger() -> Iterator[logging.Logger]:
 
 
 @pytest.mark.usefixtures("fake_time")
-class TestCheckFile:
+class TestCheckPath:
     @staticmethod
     def test_file_not_found(logger, conhead_config, caplog):
-        result = process_module.check_file(
+        result = process_module.check_path(
             conhead_config, NOW, logger, "src/unknown.ext1"
         )
         assert not result.up_to_date
@@ -52,7 +52,7 @@ class TestCheckFile:
 
     @staticmethod
     def test_not_readable(logger, conhead_config, caplog):
-        result = process_module.check_file(
+        result = process_module.check_path(
             conhead_config, NOW, logger, "src/unreadable.ext1"
         )
         assert not result.up_to_date
@@ -75,7 +75,7 @@ class TestCheckFile:
 
         monkeypatch.setattr(pathlib.Path, "open", fake_open)
 
-        result = process_module.check_file(
+        result = process_module.check_path(
             conhead_config, NOW, logger, "src/unknown.ext1"
         )
         assert not result.up_to_date
@@ -93,7 +93,7 @@ class TestCheckFile:
 
     @staticmethod
     def test_unmatched(conhead_config, logger, source_dir, caplog):
-        result = process_module.check_file(
+        result = process_module.check_path(
             conhead_config, NOW, logger, "src/unmatched.unknown"
         )
         assert not result.up_to_date
@@ -111,7 +111,7 @@ class TestCheckFile:
 
     @staticmethod
     def test_empty(conhead_config, logger, source_dir, caplog):
-        result = process_module.check_file(
+        result = process_module.check_path(
             conhead_config, NOW, logger, "src/empty.ext1"
         )
         assert not result.up_to_date
@@ -129,7 +129,7 @@ class TestCheckFile:
 
     @staticmethod
     def test_no_header(conhead_config, logger, source_dir, caplog):
-        result = process_module.check_file(
+        result = process_module.check_path(
             conhead_config, NOW, logger, "src/no-header.ext3"
         )
         assert not result.up_to_date
@@ -147,7 +147,7 @@ class TestCheckFile:
 
     @staticmethod
     def test_out_of_date(conhead_config, logger, source_dir, caplog):
-        result = process_module.check_file(
+        result = process_module.check_path(
             conhead_config, NOW, logger, "src/out-of-date.ext4"
         )
         assert not result.up_to_date
@@ -168,7 +168,7 @@ class TestCheckFile:
 
     @staticmethod
     def test_up_to_date(conhead_config, logger, source_dir, caplog):
-        result = process_module.check_file(
+        result = process_module.check_path(
             conhead_config, NOW, logger, "src/up-to-date.ext2"
         )
         assert result.up_to_date

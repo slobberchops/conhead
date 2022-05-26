@@ -12,9 +12,29 @@ import conhead.template
 from conhead import config
 from conhead import template
 
+"""
+Higher level processing of headers on files.
+"""
+
 
 @dataclasses.dataclass(frozen=True)
 class CheckResult:
+    """
+    Result from header check against single file.
+
+    Attributes:
+
+    :up_to_date: If file exists, has a header and is up to date, this is True
+        else False.
+    :content: Full content of parsed file.
+    :header_def: `HeaderDef` configuration matched for file.
+    :updated_values: Sequence of new values for out of date header. Only
+        present if file already has a header and some values in that header
+        are out of date.
+    :parsed_values: Original values and header from files that already contain
+        header.
+    """
+
     up_to_date: bool
     content: Optional[str]
     header_def: Optional[config.HeaderDef]
@@ -22,12 +42,21 @@ class CheckResult:
     parsed_values: Optional[template.ParsedValues]
 
 
-def check_file(
+def check_path(
     cfg: config.Config,
     now: datetime.datetime,
     logger: logging.Logger,
     path: Union[pathlib.Path, str],
 ) -> CheckResult:
+    """
+    Check path to see if file exists, has header and header up to date.
+
+    :param cfg: Full conhead configuration containing all header definitions.
+    :param now: Current timestamp for purposes of updating date related fields.
+    :param logger: A logger.
+    :param path: Relative or absolute path.
+    :return: `CheckResult` instance.
+    """
     if isinstance(path, str):
         path = pathlib.Path(path)
 
@@ -92,6 +121,18 @@ def rewrite_file(
     field_values: template.FieldValues,
     parsed_values: Optional[template.ParsedValues],
 ) -> bool:
+    """
+    Re-write a file based on result of previous check.
+
+    :param path: Relative or absolute path. Any file at this path will be rewritten
+        with an up to date header.
+    :param logger: A logger.
+    :param content: Content from file as previously read during check.
+    :param header_def: Rewrite using header definition.
+    :param field_values: Sequence of up to date values for rewritten header.
+    :param parsed_values: Values originally parsed from matched header.
+    :return: True if header rewritten, else False.
+    """
     if isinstance(path, str):
         path = pathlib.Path(path)
 

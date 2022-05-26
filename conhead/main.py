@@ -79,7 +79,7 @@ def main(paths, check, verbose, quiet):
 
         error = False
         for path in (pathlib.Path(p) for p in paths):
-            result = process.check_file(cfg, now, logger, path)
+            result = process.check_path(cfg, now, logger, path)
             error |= not result.up_to_date
             if check or result.up_to_date or not result.header_def:
                 continue

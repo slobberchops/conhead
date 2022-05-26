@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [tool.poetry]
-name = "consistent-header"
+name = "conhead"
 version = "0.1.0"
 description = "Python-based tool for keeping source file headers consistent."
 authors = [

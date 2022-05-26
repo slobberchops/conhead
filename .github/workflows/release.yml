@@ -22,9 +22,11 @@ jobs:
       run: pipx install --python python${{ matrix.python-version }} poetry
     - name: Extract version from poetry
       run: mkdir dist && poetry install --dry-run | grep -o 'conhead \(.*\)' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' > dist/VERSION
-    - name: Build sdist
-      run: poetry build -f sdist
-
-    - run: echo RELEASE_VERSION=$(cat dist/VERSION)
-    - run: python -m venv dist/test-installation
-    - run: dist/test-installation/bin/pip install
+    - name: Make sure version matches GITHUB_REF
+      run: test "refs/tags/v$(cat dist/VERSION)" == "$GITHUB_REF
+#    - name: Build sdist
+#      run: poetry build -f sdist
+#
+#    - run: echo RELEASE_VERSION=$(cat dist/VERSION)
+#    - run: python -m venv dist/test-installation
+#    - run: dist/test-installation/bin/pip install

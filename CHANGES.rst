@@ -1,8 +1,8 @@
 Changes
 =======
 
-Next release
--------------
+v0.1.0
+------
 
 - Initial release
 - Command line tool for adding or updating license

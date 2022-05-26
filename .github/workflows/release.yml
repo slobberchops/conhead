@@ -1,0 +1,27 @@
+name: Run pre-commit
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-20.04
+    name: Builds and publishes release.
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v3
+      with:
+        python-version: "3.9"
+        architecture: x64
+
+    - run: pipx install --python python${{ matrix.python-version }} poetry
+    - run: poetry build -f sdist
+    - run: export RELEASE_VERSION=$(poetry install --dry-run | grep -o 'conhead \(.*\)' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')
+    - run: echo RELEASE_VERSION=$RELEASE_VERSION
+#    - run: python -m venv dist/test-installation
+#    - run: dist/test-installation/bin/pip install
+#    - run: pre-commit run -a

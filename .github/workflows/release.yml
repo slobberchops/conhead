@@ -1,0 +1,76 @@
+name: Release Python package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-20.04
+    name: Builds and publishes release.
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v3
+      with:
+        python-version: "3.9"
+        architecture: x64
+
+    - name: Install Poetry
+      run: pipx install --python python${{ matrix.python-version }} poetry
+
+    - name: Extract version from poetry
+      run: >
+        mkdir dist &&
+        poetry install --dry-run |
+        grep -o 'conhead \(.*\)' |
+        grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' > dist/VERSION
+
+    - name: Make sure version matches GITHUB_REF
+      run: test "refs/tags/v$(cat dist/VERSION)" == "$GITHUB_REF"
+
+    - name: Build sdist
+      run: poetry build -f sdist
+
+    - name: Create test installation environment
+      run: python -m venv dist/test-installation
+
+    - name: Test package installs into environment
+      run: >
+        dist/test-installation/bin/pip
+        install dist/conhead-$(cat dist/VERSION).tar.gz
+
+    - name: Install twine
+      run: pipx install twine
+
+    - name: Upload package
+      env:
+        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+      run: >
+        twine upload
+        --username __token__
+        --disable-progress-bar --non-interactive
+        dist/conhead-$(cat dist/VERSION).tar.gz
+
+    - name: Create Github release
+      id: create-release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Conhead ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Python package
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: dist/conhead-$(dist/VERSION).tar.gz
+        asset_name: conhead-$(dist/VERSION).tar.gz
+        asset_content_type: application/gzip

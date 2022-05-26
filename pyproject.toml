@@ -3,7 +3,7 @@
 
 [tool.poetry]
 name = "conhead"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python-based tool for keeping source file headers consistent."
 license = "Apache-2.0"
 authors = [

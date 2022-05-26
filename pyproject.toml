@@ -8,6 +8,25 @@ description = "Python-based tool for keeping source file headers consistent."
 authors = [
     "Rafe Kaplan",
 ]
+readme = "README.rst"
+homepage = "https://github.com/slobberchops/conhead"
+repository = "https://github.com/slobberchops/conhead"
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
 packages = [
     {include = "conhead", from = "."}
 ]

@@ -18,7 +18,7 @@ Conhead is available as the Python ``conhead`` package.
 
 For example, to install using `pipx`_:
 
-.. code-block:: python
+.. code-block:: shell
 
     $ pipx install conhead
     $ conhead --help

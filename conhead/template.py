@@ -15,10 +15,21 @@ class TemplateError(Exception):
 
 
 class FieldKind(enum.Enum):
+    """
+    Enumeration defining computed fields.
+    """
+
     YEAR = "year"
 
 
 class TokenKind(enum.Enum):
+    """
+    Tokens read from a header template.
+
+    The values of each enum is the regular expression pattern used to match
+    that token.
+    """
+
     NEWLINE = r"\n"
     ESCAPED = r"\\[{}\\]"
     YEAR = r"{{YEAR}}"
@@ -38,6 +49,10 @@ _GROUP_YEAR_RE = re.compile(r"(\d{4})(?:-(\d{4}))?")
 
 @dataclasses.dataclass(frozen=True, order=True)
 class Years:
+    """
+    Year range that is written into YEAR fields.
+    """
+
     start: int
     end: int
 
@@ -57,16 +72,42 @@ FieldValues = tuple[Years, ...]
 
 @dataclasses.dataclass(frozen=True)
 class ParsedValues:
+    """
+    All values parsed from a written header.
+
+    :fields: Value of all fields from header.
+    :header: The parsed header itself with all field values embedded.
+    """
+
     fields: FieldValues
     header: str
 
 
 @dataclasses.dataclass(frozen=True)
 class HeaderParser:
+    """
+    Existing header parser.
+
+    Derived from a header template, this class will parse an existing header
+    with embedded field values and extract those values.
+
+    :fields: Known fields as parsed from header template.
+    :regex: Regular expression used to match a header at the top of a file
+        and extract the fields as groups.
+    """
+
     fields: tuple[FieldKind, ...]
     regex: re.Pattern
 
     def parse_fields(self, content: str) -> Optional[ParsedValues]:
+        """
+        Parse fields from a header.
+
+        This parses fields from an existing header.
+
+        :param content: Contents of whole file as read from file system.
+        :return: `ParsedValues` if file has header, else None.
+        """
         match = self.regex.match(content)
         if not match:
             return None
@@ -84,6 +125,24 @@ class HeaderParser:
 
 
 def tokenize_template(template: str) -> Iterator[Token]:
+    """
+    Parse template into a sequence of tokens.
+
+    Reads a header template and emits a sequence of tokens that describes
+    the content of that header.
+
+    Each token is a tuple of 4 values:
+        token kind: A value from `TokenKind`. `TokenKind.INVALID` is never emitted.
+            When an invalid token is discovered, this will cause a `TemplateError`.
+        value: The raw text value of the content.
+
+    The token stream can be used for more than one purpose. It is used to parse
+    the template to build a header parser as well as re-parsing for the purposes
+    of rewriting it.
+
+    :param template:
+    :return:
+    """
     line = 1
     column = 1
     content = io.StringIO()
@@ -120,6 +179,17 @@ def tokenize_template(template: str) -> Iterator[Token]:
 
 
 def make_template_parser(template: str) -> HeaderParser:
+    """
+    Build a template parser from a header template.
+
+    A template parser needs two things. One is a regular expression
+    matching the header and its embedded fields represented as groups.
+    The other is the sequence of field types found in the sequence
+    of groups.
+
+    :param template: A header template as read from configuration.
+    :return:
+    """
     pattern = io.StringIO()
     pattern.write("^")
     groups = []
@@ -135,6 +205,17 @@ def make_template_parser(template: str) -> HeaderParser:
 
 
 def write_header(template: str, values: FieldValues, output: TextIO):
+    """
+    Writes a header to output.
+
+    Header is written based on a template as found in a `HeaderDef` and
+    a sequence of values that are written into the fields matched in the
+    template.
+
+    :param template: Header template as found in `HeaderDef`.
+    :param values: Sequence of field values defined in header template.
+    :param output: Text output.
+    """
     value_iterator = iter(values)
     for kind, value, line, column in tokenize_template(template):
         if kind is TokenKind.YEAR:

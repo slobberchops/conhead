@@ -131,3 +131,11 @@ again and will not write a second header.
 
     def hello():
         print("Greetings!")
+
+Links
+-----
+
+-   Changes: https://github.com/slobberchops/conhead/blob/main/CHANGES.rst
+-   PyPI Releases: https://pypi.org/project/conhead/
+-   Source Code: https://github.com/slobberchops/conhead
+-   Issue Tracker: https://github.com/slobberchops/conhead/issues

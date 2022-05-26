@@ -43,7 +43,11 @@ def naive_now() -> datetime.datetime:
     "--check",
     is_flag=True,
     default=False,
-    help="Runs check without trying to re-write.",
+    help=(
+        "Runs check without adding headers or re-writing. "
+        "Will still generate non zero exit code for files that "
+        "are missing headers or are out of date."
+    ),
 )
 @click.option(
     "--verbose",
@@ -60,6 +64,10 @@ def naive_now() -> datetime.datetime:
 def main(paths, check, verbose, quiet):
     """
     Consistent header manager
+
+    Maintains consistent header files across files. Adds headers to
+    files that are missing them. Keeps information in header up to date
+    for files that already have them.
     """
     with conhead_logger(verbose, quiet) as logger:
         cfg = config.load() or config.Config(header_defs=util.FrozenDict())

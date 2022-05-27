@@ -71,6 +71,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
-        asset_path: dist/conhead-$(dist/VERSION).tar.gz
-        asset_name: conhead-$(dist/VERSION).tar.gz
+        asset_path: dist/conhead-$(cat dist/VERSION).tar.gz
+        asset_name: conhead-$(cat dist/VERSION).tar.gz
         asset_content_type: application/gzip

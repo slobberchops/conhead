@@ -1,6 +1,12 @@
 Changes
 =======
 
+Next release
+------------
+
+- ``.pre-commit-hooks.yaml`` so that ``conhead`` becomes
+  a `pre-commit <https://pre-commit.com>`_ plugin.
+
 v0.1.1
 ------
 

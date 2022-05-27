@@ -29,7 +29,7 @@ For example, to install using `pipx`_:
 Configuration
 -------------
 
-Configure ``conhead`` via `pyproject.toml`. Each header template
+Configure ``conhead`` via ``pyproject.toml``. Each header template
 is configured via a separate ``[tools.conhead.header.<name>]``
 section. Each section is a header definition and can be applied
 to one or more file extensions.

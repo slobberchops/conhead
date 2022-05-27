@@ -132,6 +132,22 @@ again and will not write a second header.
     def hello():
         print("Greetings!")
 
+Pre-commit
+----------
+
+``conhead`` is `pre-commit <https://pre-commit.com>`_ ready. To use
+with pre-commit, add the repo to your ``.pre-commit-config.yaml``.
+
+For example:
+
+.. code-block:: yaml
+
+    - repo: https://github.com/slobberchops/conhead
+      rev: v0.2.0
+      hooks:
+
+        - id: conhead
+
 Links
 -----
 

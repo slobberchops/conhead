@@ -1,0 +1,8 @@
+# Copyright 2022 Rafe Kaplan
+# SPDX-License-Identifier: Apache-2.0
+
+- id: conhead
+  name: conhead
+  description: Ensure that source files have consistent headers.
+  entry: conhead
+  language: python

@@ -131,6 +131,8 @@ def main(paths, check, delete, verbose, quiet):
 
         now = naive_now()
 
+        paths = paths or ["."]
+
         error = False
         for path_param in (pathlib.Path(p) for p in paths):
             for path, is_param in iter_path(path_param):

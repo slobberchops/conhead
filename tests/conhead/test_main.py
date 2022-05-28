@@ -335,3 +335,26 @@ class TestMain:
             logging.INFO,
             "removing header: src/out-of-date.ext4",
         )
+
+    @staticmethod
+    def test_process_whole_dir(cli_runner, caplog, project_dir):
+        result = cli_runner.invoke(main.main, ["-vvv"])
+        assert result.exit_code == 1
+        update_reports = [
+            message
+            for (_, _, message) in caplog.record_tuples
+            if message.startswith("checking:") or message.startswith("skipping:")
+        ]
+
+        assert update_reports == [
+            "skipping: pyproject.toml",
+            "checking: src/up-to-date.ext2",
+            "checking: src/no-header.ext3",
+            "checking: src/out-of-date.ext4",
+            "checking: src/sub-dir/file1.ext1",
+            "skipping: src/sub-dir/file3.unknown",
+            "checking: src/sub-dir/file2.ext3",
+            "checking: src/unreadable.ext1",
+            "checking: src/empty.ext1",
+            "skipping: src/unmatched.unknown",
+        ]

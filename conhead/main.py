@@ -60,6 +60,24 @@ def _check_and_delete_mutually_exclusive(
     return value
 
 
+def iter_dir(dir: pathlib.Path) -> Iterator[pathlib.Path]:
+    for entry in dir.iterdir():
+        if entry.is_symlink():
+            continue
+        if entry.is_dir():
+            yield from iter_dir(entry)
+        elif entry.is_file():
+            yield entry
+
+
+def iter_path(path: pathlib.Path) -> Iterator[tuple[pathlib.Path, bool]]:
+    if not path.is_dir():
+        yield path, True
+    else:
+        for entry in iter_dir(path):
+            yield entry, False
+
+
 @click.command("conhead")
 @click.argument("paths", nargs=-1, type=click.Path(exists=False), metavar="SRC")
 @click.option(
@@ -114,41 +132,50 @@ def main(paths, check, delete, verbose, quiet):
         now = naive_now()
 
         error = False
-        for path in (pathlib.Path(p) for p in paths):
-            result = process.check_path(cfg, now, logger, path)
-            if delete:
-                is_dirty = not result.is_headerless
-            else:
-                is_dirty = not result.is_up_to_date
-            error |= is_dirty
+        for path_param in (pathlib.Path(p) for p in paths):
+            for path, is_param in iter_path(path_param):
+                result = process.check_path(
+                    cfg, now, logger, path, ignore_missing_template=not is_param
+                )
 
-            if check or not result.has_content or not is_dirty:
-                continue
+                # Ignore files that are found by searching a directory
+                # but are not handled by any template.
+                if not (result.has_header or is_param):
+                    continue
 
-            assert result.header_def
-
-            if delete:
-                values = None
-            else:
-                if result.updated_values:
-                    values = result.updated_values
+                if delete:
+                    is_dirty = not result.is_headerless
                 else:
-                    values = tuple(
-                        template.Years(now.year, now.year)
-                        for _ in result.header_def.parser.fields
-                    )
+                    is_dirty = not result.is_up_to_date
+                error |= is_dirty
 
-            assert result.content
-            assert result.header_def
-            error |= process.rewrite_file(
-                path,
-                logger,
-                result.content,
-                result.header_def,
-                values,
-                result.parsed_values,
-                delete,
-            )
+                if check or not result.has_content or not is_dirty:
+                    continue
+
+                assert result.header_def
+
+                if delete:
+                    values = None
+                else:
+                    if result.updated_values:
+                        values = result.updated_values
+                    else:
+                        values = tuple(
+                            template.Years(now.year, now.year)
+                            for _ in result.header_def.parser.fields
+                        )
+
+                assert result.content
+                assert result.header_def
+                error |= process.rewrite_file(
+                    path,
+                    logger,
+                    result.content,
+                    result.header_def,
+                    values,
+                    result.parsed_values,
+                    delete,
+                )
 
         if error:
             sys.exit(1)

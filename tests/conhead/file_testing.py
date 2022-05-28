@@ -20,7 +20,7 @@ A `Perm` object can be used for writing nodes that have their permissions
 change from the default.
 """
 
-DirEntry = Union["DirContent", str, "Perm"]
+DirEntry = Union["DirContent", str, "Perm", "Symlink"]
 
 DirContent = dict[str, DirEntry]
 
@@ -40,30 +40,45 @@ class Perm:
         self.write = write
 
 
-def write_content(path: pathlib.Path, content: DirEntry):
+class Symlink:
+    """
+    Symlink entry.
+    """
+
+    ref: str
+
+    def __init__(self, ref: str):
+        self.ref = ref
+
+
+def write_content(path: pathlib.Path, entry: DirEntry):
     """
     Write directory entry to path.
 
     :param path: Target path for directory entry.
     :param content: Any `DirEntry` type.
     """
-    if isinstance(content, dict):
+    if isinstance(entry, dict):
         path.mkdir()
-        for file_name, entry in content.items():
+        for file_name, entry in entry.items():
             write_content(path / file_name, entry)
-    elif isinstance(content, str):
-        content = config.deindent_string(content)
+    elif isinstance(entry, str):
+        content = config.deindent_string(entry)
         with open(path, "w") as open_file:
             open_file.write(content)
-    elif isinstance(content, Perm):
-        write_content(path, content.content)
+    elif isinstance(entry, Perm):
+        write_content(path, entry.content)
         mode = 0
-        if content.read:
+        if entry.read:
             mode |= stat.S_IREAD
-        if content.write:
+        if entry.write:
             mode |= stat.S_IWRITE
         os.chmod(path, mode)
-    elif content is None:
+    elif isinstance(entry, Symlink):
+        target = path.parent / entry.ref
+        is_dir = target.is_dir()
+        path.symlink_to(entry.ref, target_is_directory=is_dir)
+    elif entry is None:
         pass
     else:
-        raise TypeError(f"Unexpected type: {type(content)}")
+        raise TypeError(f"Unexpected type: {type(entry)}")

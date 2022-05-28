@@ -43,4 +43,17 @@ def populated_source_dir() -> file_testing.DirContent:
                 // line 2 2014-2018
                 content
             """,
+        "sub-dir": {
+            "file1.ext1": """\
+                # line 1 2019
+                # line 2 2014-2019
+                file1
+            """,
+            "file2.ext3": """\
+                // line 1 2019
+                // line 2 2014-2019
+                file3
+            """,
+            "file3.unknown": "file3",
+        },
     }

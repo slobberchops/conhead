@@ -59,6 +59,8 @@ def check_path(
     now: datetime.datetime,
     logger: logging.Logger,
     path: Union[pathlib.Path, str],
+    *,
+    ignore_missing_template,
 ) -> CheckResult:
     """
     Check path to see if file exists, has header and header up to date.
@@ -72,12 +74,25 @@ def check_path(
     if isinstance(path, str):
         path = pathlib.Path(path)
 
-    logger.info("process %s", path)
     up_to_date = False
     content = None
-    header_def = None
     updated_values = None
     parsed_values = None
+
+    header_def = cfg.header_for_path(path)
+    if not header_def and ignore_missing_template:
+        logger.debug("skipping: %s", path)
+        return CheckResult(
+            up_to_date, content, header_def, updated_values, parsed_values
+        )
+
+    logger.debug("checking: %s", path)
+    if not header_def:
+        logger.error("no header def: %s", path)
+        return CheckResult(
+            up_to_date, content, header_def, updated_values, parsed_values
+        )
+
     try:
         content = path.read_text()
     except FileNotFoundError:
@@ -92,13 +107,6 @@ def check_path(
         )
     except OSError as err:
         logger.error("%s (%s): %s", err, type(err).__name__, path)
-        return CheckResult(
-            up_to_date, content, header_def, updated_values, parsed_values
-        )
-
-    header_def = cfg.header_for_path(path)
-    if not header_def:
-        logger.error("no header def: %s", path)
         return CheckResult(
             up_to_date, content, header_def, updated_values, parsed_values
         )

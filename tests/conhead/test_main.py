@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import datetime
+import inspect
 import logging
 import pathlib
 
@@ -9,6 +10,7 @@ import click
 import pytest
 
 from conhead import main
+from tests.conhead import file_testing
 from tests.conhead import fixtures
 
 
@@ -46,6 +48,73 @@ def test_naive_now():
     assert dt > expected - delta
 
 
+class TestIterFilesystem:
+    @staticmethod
+    @pytest.fixture
+    def project_dir_content() -> file_testing.DirContent:
+        return {
+            "a-file": "",
+            "a-dir": {
+                "a-sub-file1": "",
+                "a-sub-file2": "",
+                "another-dir": {
+                    "a-sub-file3": "",
+                },
+            },
+            "sym-to-file": file_testing.Symlink("a-file"),
+            "sym-to-dir": file_testing.Symlink("a-dir"),
+        }
+
+    @staticmethod
+    def test_iter_dir(project_dir):
+        iterator = main.iter_dir(project_dir)
+        assert inspect.isgenerator(iterator)
+
+        a_file, sub_file3, sub_file2, sub_file1 = list(iterator)
+        assert a_file.relative_to(project_dir) == pathlib.Path("a-file")
+        assert sub_file1.relative_to(project_dir) == pathlib.Path("a-dir/a-sub-file1")
+        assert sub_file2.relative_to(project_dir) == pathlib.Path("a-dir/a-sub-file2")
+        assert sub_file3.relative_to(project_dir) == pathlib.Path(
+            "a-dir/another-dir/a-sub-file3"
+        )
+
+    class TestIterPath:
+        @staticmethod
+        def test_file(project_dir):
+            iterator = main.iter_path(project_dir / "a-file")
+            assert inspect.isgenerator(iterator)
+
+            ((a_file, is_param),) = iterator
+            assert a_file == project_dir / "a-file"
+            assert is_param
+
+        @staticmethod
+        def test_does_not_exist(project_dir):
+            iterator = main.iter_path(project_dir / "not-real")
+            assert inspect.isgenerator(iterator)
+
+            ((not_real, is_param),) = iterator
+            assert not_real == project_dir / "not-real"
+            assert is_param
+
+        @staticmethod
+        def test_dir(project_dir):
+            iterator = main.iter_path(project_dir / "a-dir")
+            assert inspect.isgenerator(iterator)
+
+            (
+                (sub_file3, is_param1),
+                (sub_file2, is_param2),
+                (sub_file1, is_param3),
+            ) = iterator
+            assert sub_file1 == project_dir / "a-dir" / "a-sub-file1"
+            assert not is_param1
+            assert sub_file2 == project_dir / "a-dir" / "a-sub-file2"
+            assert not is_param2
+            assert sub_file3 == project_dir / "a-dir" / "another-dir" / "a-sub-file3"
+            assert not is_param3
+
+
 @pytest.mark.usefixtures("fake_time")
 class TestMain:
     source_dir = staticmethod(fixtures.populated_source_dir)
@@ -76,7 +145,7 @@ class TestMain:
         assert result.exit_code == 0
 
         process, up_to_date = caplog.record_tuples
-        assert process == ("conhead", logging.INFO, "process src/up-to-date.ext2")
+        assert process == ("conhead", logging.DEBUG, "checking: src/up-to-date.ext2")
         assert up_to_date == (
             "conhead",
             logging.INFO,
@@ -89,7 +158,7 @@ class TestMain:
         assert result.exit_code == 1
 
         process, no_header_def = caplog.record_tuples
-        assert process == ("conhead", logging.INFO, "process src/unmatched.unknown")
+        assert process == ("conhead", logging.DEBUG, "checking: src/unmatched.unknown")
         assert no_header_def == (
             "conhead",
             logging.ERROR,
@@ -105,13 +174,13 @@ class TestMain:
         assert result.exit_code == 1
 
         process1, ok, process2, error = caplog.record_tuples
-        assert process1 == ("conhead", logging.INFO, "process src/up-to-date.ext2")
+        assert process1 == ("conhead", logging.DEBUG, "checking: src/up-to-date.ext2")
         assert ok == (
             "conhead",
             logging.INFO,
             "up to date: src/up-to-date.ext2",
         )
-        assert process2 == ("conhead", logging.INFO, "process src/out-of-date.ext4")
+        assert process2 == ("conhead", logging.DEBUG, "checking: src/out-of-date.ext4")
         assert error == (
             "conhead",
             logging.WARNING,
@@ -130,7 +199,7 @@ class TestMain:
         assert rewritten == "// line 1 2019\n// line 2 2019\n// No proper header\n"
 
         load, error, write = caplog.record_tuples
-        assert load == ("conhead", logging.INFO, "process src/no-header.ext3")
+        assert load == ("conhead", logging.DEBUG, "checking: src/no-header.ext3")
         assert error == (
             "conhead",
             logging.WARNING,
@@ -150,7 +219,7 @@ class TestMain:
         assert rewritten == "// line 1 2018-2019\n// line 2 2014-2019\ncontent\n"
 
         load, error, write = caplog.record_tuples
-        assert load == ("conhead", logging.INFO, "process src/out-of-date.ext4")
+        assert load == ("conhead", logging.DEBUG, "checking: src/out-of-date.ext4")
         assert error == (
             "conhead",
             logging.WARNING,
@@ -167,6 +236,35 @@ class TestMain:
         assert result.exit_code == 1
 
         assert not caplog.record_tuples
+
+    @staticmethod
+    def test_iterate_dir(cli_runner, caplog, project_dir):
+        result = cli_runner.invoke(
+            main.main,
+            [
+                "-vvv",
+                "src/sub-dir",
+            ],
+        )
+        assert result.exit_code == 0
+        process1, up_to_date1, skip, process2, up_to_date2 = caplog.record_tuples
+
+        assert process1 == (
+            "conhead",
+            logging.DEBUG,
+            "checking: src/sub-dir/file1.ext1",
+        )
+        assert up_to_date1 == (
+            "conhead",
+            logging.INFO,
+            "up to date: src/sub-dir/file1.ext1",
+        )
+        assert skip == ("conhead", logging.DEBUG, "skipping: src/sub-dir/file3.unknown")
+        assert process2 == (
+            "conhead",
+            logging.DEBUG,
+            "checking: src/sub-dir/file2.ext3",
+        )
 
     @staticmethod
     def test_delete(cli_runner, caplog):
@@ -202,7 +300,7 @@ class TestMain:
             remove3,
         ) = caplog.record_tuples
 
-        assert process1 == ("conhead", logging.INFO, "process src/no-header.ext3")
+        assert process1 == ("conhead", logging.DEBUG, "checking: src/no-header.ext3")
 
         assert missing_header == (
             "conhead",
@@ -210,7 +308,7 @@ class TestMain:
             "missing header: src/no-header.ext3",
         )
 
-        assert process2 == ("conhead", logging.INFO, "process src/up-to-date.ext2")
+        assert process2 == ("conhead", logging.DEBUG, "checking: src/up-to-date.ext2")
 
         assert up_to_date == (
             "conhead",
@@ -224,7 +322,7 @@ class TestMain:
             "removing header: src/up-to-date.ext2",
         )
 
-        assert process3 == ("conhead", logging.INFO, "process src/out-of-date.ext4")
+        assert process3 == ("conhead", logging.DEBUG, "checking: src/out-of-date.ext4")
 
         assert out_of_date == (
             "conhead",

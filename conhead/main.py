@@ -14,7 +14,6 @@ import click
 
 from conhead import config
 from conhead import process
-from conhead import template
 from conhead import util
 
 
@@ -163,8 +162,7 @@ def main(paths, check, delete, verbose, quiet):
                         values = result.updated_values
                     else:
                         values = tuple(
-                            template.Years(now.year, now.year)
-                            for _ in result.header_def.parser.fields
+                            f.type.new(now) for f in result.header_def.parser.fields
                         )
 
                 assert result.content

@@ -10,6 +10,7 @@ from typing import Iterator
 import pytest
 
 from conhead import config
+from conhead import fields
 from conhead import process as process_module
 from conhead import template
 from tests.conhead import fixtures
@@ -195,8 +196,8 @@ class TestCheckPath:
         assert result.content == config.deindent_string(source_dir["out-of-date.ext4"])
         assert result.updated_values
         years1, years2 = result.updated_values
-        assert years1 == template.Years(2018, 2019)
-        assert years2 == template.Years(2014, 2019)
+        assert years1 == fields.Years(2018, 2019)
+        assert years2 == fields.Years(2014, 2019)
         assert result.header_def is conhead_config.header_defs["header2"]
 
         process, not_found = caplog.record_tuples
@@ -234,7 +235,7 @@ class TestRewriteFile:
     @staticmethod
     def test_unwritable(conhead_config, logger, caplog):
         header_def = conhead_config.header_defs["header1"]
-        field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
+        field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
 
         path = pathlib.Path("result.ext1")
         path.write_text("")
@@ -260,7 +261,7 @@ class TestRewriteFile:
     @staticmethod
     def test_oserror(conhead_config, logger, caplog, monkeypatch):
         header_def = conhead_config.header_defs["header1"]
-        field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
+        field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
 
         def fake_open(*args, **kwargs):
             raise TimeoutError("timeout error")
@@ -288,7 +289,7 @@ class TestRewriteFile:
     @staticmethod
     def test_all_new(conhead_config, logger, caplog):
         header_def = conhead_config.header_defs["header1"]
-        field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
+        field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
         assert process_module.rewrite_file(
             "result.ext1",
             logger,
@@ -308,7 +309,7 @@ class TestRewriteFile:
     @staticmethod
     def test_update_existing(conhead_config, logger, caplog):
         header_def = conhead_config.header_defs["header1"]
-        field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
+        field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
         existing_header = "# line 1 2011\n# line 2 2011-2014\n"
         existing_content = f"{existing_header}end of file\n"
         parsed_values = template.ParsedValues(field_values, existing_header)
@@ -330,7 +331,7 @@ class TestRewriteFile:
 
     def test_remove_header_has_header(self, conhead_config, logger, caplog):
         header_def = conhead_config.header_defs["header1"]
-        field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
+        field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
         existing_header = "# line 1 2011\n# line 2 2011-2014\n"
         existing_content = f"{existing_header}end of file\n"
         parsed_values = template.ParsedValues(field_values, existing_header)

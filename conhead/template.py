@@ -5,9 +5,14 @@ import dataclasses
 import enum
 import io
 import re
+from typing import Generic
 from typing import Iterator
 from typing import Optional
 from typing import TextIO
+from typing import TypeVar
+from typing import cast
+
+from conhead import fields
 
 
 class TemplateError(Exception):
@@ -19,7 +24,11 @@ class FieldKind(enum.Enum):
     Enumeration defining computed fields.
     """
 
-    YEAR = "year"
+    YEAR = fields.Years
+
+    @property
+    def type(self) -> type[fields.Field]:
+        return self.value
 
 
 class TokenKind(enum.Enum):
@@ -32,42 +41,66 @@ class TokenKind(enum.Enum):
 
     NEWLINE = r"\n"
     ESCAPED = r"\\[{}\\]"
-    YEAR = r"{{YEAR}}"
+    FIELD = r"{{[^}]+}}"
     INVALID = r"[{}\\]"
     CONTENT = r"."
 
 
-# kind, value, row, column
-Token = tuple[TokenKind, str, int, int]
+T = TypeVar("T")
+
+
+class Token(Generic[T]):
+    @property
+    def kind(self) -> TokenKind:
+        return self.__kind
+
+    @property
+    def unparsed(self) -> str:
+        return self.__unparsed
+
+    @property
+    def row(self) -> int:
+        return self.__row
+
+    @property
+    def column(self) -> int:
+        return self.__column
+
+    @property
+    def parsed(self) -> T:
+        return self.__parsed
+
+    def __init__(
+        self, kind: TokenKind, unparsed: str, row: int, column: int, parsed: T
+    ):
+        self.__kind = kind
+        self.__unparsed = unparsed
+        self.__row = row
+        self.__column = column
+        self.__parsed = parsed
+
+    def __repr__(self):
+        return f"<token:{self.kind.name} {self.unparsed!r} {self.row}:{self.column}>"
+
+    def __eq__(self, other):
+        if isinstance(other, Token):
+            return (self.kind, self.unparsed, self.row, self.column, self.parsed) == (
+                other.kind,
+                other.unparsed,
+                self.row,
+                self.column,
+                self.parsed,
+            )
+        else:
+            return NotImplemented
+
 
 _TOKENIZER_RE = re.compile("|".join(f"(?P<{t.name}>{t.value})" for t in TokenKind))
 
-_YEAR_RE = re.compile(r"\d{4}(?:-\d{4})?")
-
-_GROUP_YEAR_RE = re.compile(r"(\d{4})(?:-(\d{4}))?")
+_FIELD_RE = re.compile(r"{{(.*)}}")
 
 
-@dataclasses.dataclass(frozen=True, order=True)
-class Years:
-    """
-    Year range that is written into YEAR fields.
-    """
-
-    start: int
-    end: int
-
-    def __str__(self):
-        if self.start == self.end:
-            return str(self.start)
-        else:
-            return f"{self.start}-{self.end}"
-
-    def __iter__(self):
-        yield self.start
-        yield self.end
-
-
-FieldValues = tuple[Years, ...]
+FieldValues = tuple[fields.Field, ...]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -113,14 +146,10 @@ class HeaderParser:
             return None
         else:
             values = []
-            for group in range(1, len(self.fields) + 1):
-                unparsed = match.group(group)
-                year_match = _GROUP_YEAR_RE.match(unparsed)
-                assert year_match is not None
-                start, end = year_match.groups()
-                start_int = int(start)
-                end_int = int(start if end is None else end)
-                values.append(Years(start_int, end_int))
+            for index, field_kind in enumerate(self.fields):
+                field_type = field_kind.type
+                unparsed = match.group(index + 1)
+                values.append(field_type.parse(unparsed))
             return ParsedValues(tuple(values), match.group(0))
 
 
@@ -157,14 +186,31 @@ def tokenize_template(template: str) -> Iterator[Token]:
 
         content_value = content.getvalue()
         if content_value:
-            yield TokenKind.CONTENT, content_value, line, column
+            yield Token(TokenKind.CONTENT, content_value, line, column, content_value)
             column += len(content_value)
             content = io.StringIO()
 
         if kind == TokenKind.INVALID:
             raise TemplateError(f"Invalid character {value!r} found at {line}:{column}")
 
-        yield kind, value, line, column
+        if kind == TokenKind.ESCAPED:
+            parsed_value = value[1:]
+        elif kind == TokenKind.FIELD:
+            field_match = _FIELD_RE.match(value)
+            assert field_match
+            field_kind_name = field_match.group(1)
+            try:
+                field_kind = FieldKind[field_kind_name]
+            except KeyError:
+                raise TemplateError(
+                    f"Unknown field type {field_kind_name!r} at {line}:{column}"
+                )
+            else:
+                parsed_value = cast(type[fields.Field], field_kind)
+        else:
+            parsed_value = value
+
+        yield Token(kind, value, line, column, parsed_value)
 
         if kind is TokenKind.NEWLINE:
             line += 1
@@ -174,7 +220,7 @@ def tokenize_template(template: str) -> Iterator[Token]:
 
     content_value = content.getvalue()
     if content_value:
-        yield TokenKind.CONTENT, content_value, line, column
+        yield Token(TokenKind.CONTENT, content_value, line, column, content_value)
         column += len(content_value)
 
 
@@ -193,14 +239,15 @@ def make_template_parser(template: str) -> HeaderParser:
     pattern = io.StringIO()
     pattern.write("^")
     groups = []
-    for kind, value, line, column in tokenize_template(template):
-        if kind is TokenKind.YEAR:
-            pattern.write(f"({_YEAR_RE.pattern})")
-            groups.append(FieldKind.YEAR)
-        elif kind is TokenKind.ESCAPED:
-            pattern.write(re.escape(value[1:]))
+    for token in tokenize_template(template):
+        kind = token.kind
+        if kind is TokenKind.FIELD:
+            field_kind = cast(FieldKind, token.parsed)
+            field_type = field_kind.type
+            pattern.write(f"({field_type.regex})")
+            groups.append(field_kind)
         else:
-            pattern.write(re.escape(value))
+            pattern.write(re.escape(token.parsed))
     return HeaderParser(tuple(groups), re.compile(pattern.getvalue()))
 
 
@@ -217,11 +264,10 @@ def write_header(template: str, values: FieldValues, output: TextIO):
     :param output: Text output.
     """
     value_iterator = iter(values)
-    for kind, value, line, column in tokenize_template(template):
-        if kind is TokenKind.YEAR:
-            years = next(value_iterator)
-            output.write(str(years))
-        elif kind is TokenKind.ESCAPED:
-            output.write(value[1:])
+    for token in tokenize_template(template):
+        kind = token.kind
+        if kind is TokenKind.FIELD:
+            field_value = next(value_iterator)
+            output.write(str(field_value))
         else:
-            output.write(value)
+            output.write(token.parsed)

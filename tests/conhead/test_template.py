@@ -6,11 +6,8 @@ import re
 
 import pytest
 
+from conhead import fields
 from conhead import template
-
-
-def test_iterate_years():
-    assert tuple(template.Years(2014, 2019)) == (2014, 2019)
 
 
 class TestHeaderParser:
@@ -31,8 +28,8 @@ class TestHeaderParser:
         def test_single_years(template_parser):
             values = template_parser.parse_fields("test 2014 test 2015\ncontent")
             year1, year2 = values.fields
-            assert year1 == template.Years(2014, 2014)
-            assert year2 == template.Years(2015, 2015)
+            assert year1 == fields.Years(2014, 2014)
+            assert year2 == fields.Years(2015, 2015)
             assert values.header == "test 2014 test 2015"
 
         @staticmethod
@@ -41,8 +38,8 @@ class TestHeaderParser:
                 "test 2014-2016 test 2015-2019\n content"
             )
             year1, year2 = values.fields
-            assert year1 == template.Years(2014, 2016)
-            assert year2 == template.Years(2015, 2019)
+            assert year1 == fields.Years(2014, 2016)
+            assert year2 == fields.Years(2015, 2019)
             assert values.header == "test 2014-2016 test 2015-2019"
 
 
@@ -56,48 +53,79 @@ class TestTokenizeTemplate:
     def test_lines():
         tokens = list(template.tokenize_template("\n\n\n"))
         assert tokens == [
-            (template.TokenKind.NEWLINE, "\n", 1, 1),
-            (template.TokenKind.NEWLINE, "\n", 2, 1),
-            (template.TokenKind.NEWLINE, "\n", 3, 1),
+            template.Token(template.TokenKind.NEWLINE, "\n", 1, 1, "\n"),
+            template.Token(template.TokenKind.NEWLINE, "\n", 2, 1, "\n"),
+            template.Token(template.TokenKind.NEWLINE, "\n", 3, 1, "\n"),
         ]
 
     @staticmethod
     def test_content():
         tokens = list(template.tokenize_template("this is content\n"))
         assert tokens == [
-            (template.TokenKind.CONTENT, "this is content", 1, 1),
-            (template.TokenKind.NEWLINE, "\n", 1, len("this is content") + 1),
+            template.Token(
+                template.TokenKind.CONTENT, "this is content", 1, 1, "this is content"
+            ),
+            template.Token(
+                template.TokenKind.NEWLINE, "\n", 1, len("this is content") + 1, "\n"
+            ),
         ]
 
     @staticmethod
     def test_trailing_content():
         tokens = list(template.tokenize_template("this is content\nand this also"))
         assert tokens == [
-            (template.TokenKind.CONTENT, "this is content", 1, 1),
-            (template.TokenKind.NEWLINE, "\n", 1, len("this is content") + 1),
-            (template.TokenKind.CONTENT, "and this also", 2, 1),
+            template.Token(
+                template.TokenKind.CONTENT, "this is content", 1, 1, "this is content"
+            ),
+            template.Token(
+                template.TokenKind.NEWLINE, "\n", 1, len("this is content") + 1, "\n"
+            ),
+            template.Token(
+                template.TokenKind.CONTENT, "and this also", 2, 1, "and this also"
+            ),
         ]
 
     @staticmethod
-    def test_year():
+    def test_field():
         tokens = list(
             template.tokenize_template("rights reserved\ncopyright {{YEAR}}.")
         )
         assert tokens == [
-            (template.TokenKind.CONTENT, "rights reserved", 1, 1),
-            (template.TokenKind.NEWLINE, "\n", 1, len("rights reserved") + 1),
-            (template.TokenKind.CONTENT, "copyright ", 2, 1),
-            (template.TokenKind.YEAR, "{{YEAR}}", 2, len("copyright ") + 1),
-            (template.TokenKind.CONTENT, ".", 2, len("copyright {{YEAR}}") + 1),
+            template.Token(
+                template.TokenKind.CONTENT, "rights reserved", 1, 1, "rights reserved"
+            ),
+            template.Token(
+                template.TokenKind.NEWLINE, "\n", 1, len("rights reserved") + 1, "\n"
+            ),
+            template.Token(
+                template.TokenKind.CONTENT, "copyright ", 2, 1, "copyright "
+            ),
+            template.Token(
+                template.TokenKind.FIELD,
+                "{{YEAR}}",
+                2,
+                len("copyright ") + 1,
+                template.FieldKind.YEAR,
+            ),
+            template.Token(
+                template.TokenKind.CONTENT, ".", 2, len("copyright {{YEAR}}") + 1, "."
+            ),
         ]
+
+    @staticmethod
+    def test_unknown_field():
+        with pytest.raises(
+            template.TemplateError, match="^Unknown field type 'unknown' at 2:11$"
+        ):
+            list(template.tokenize_template("rights reserved\ncopyright {{unknown}}."))
 
     @staticmethod
     def test_escaped_character():
         tokens = list(template.tokenize_template("\\{\\}\\\\"))
         assert tokens == [
-            (template.TokenKind.ESCAPED, "\\{", 1, 1),
-            (template.TokenKind.ESCAPED, "\\}", 1, 3),
-            (template.TokenKind.ESCAPED, "\\\\", 1, 5),
+            template.Token(template.TokenKind.ESCAPED, "\\{", 1, 1, "{"),
+            template.Token(template.TokenKind.ESCAPED, "\\}", 1, 3, "}"),
+            template.Token(template.TokenKind.ESCAPED, "\\\\", 1, 5, "\\"),
         ]
 
     @staticmethod
@@ -152,7 +180,7 @@ def test_write_header():
     content = io.StringIO()
     template.write_header(
         "start {{YEAR}} middle\n{{YEAR}} \\{end\\}",
-        (template.Years(2019, 2019), template.Years(2014, 2019)),
+        (fields.Years(2019, 2019), fields.Years(2014, 2019)),
         content,
     )
 

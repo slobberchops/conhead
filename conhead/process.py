@@ -8,7 +8,6 @@ import pathlib
 from typing import Optional
 from typing import Union
 
-import conhead.template
 from conhead import config
 from conhead import template
 
@@ -118,9 +117,7 @@ def check_path(
             up_to_date, content, header_def, updated_values, parsed_values
         )
 
-    updated_values = tuple(
-        conhead.template.Years(d.start, now.year) for d in parsed_values.fields
-    )
+    updated_values = tuple(d.update(now) for d in parsed_values.fields)
     if updated_values != parsed_values.fields:
         logger.warning("out of date: %s", path)
         updated_values = updated_values

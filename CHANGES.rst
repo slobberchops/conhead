@@ -1,11 +1,12 @@
 Changes
 =======
 
-Next release
-------------
+v0.2.0
+------
 
 - ``.pre-commit-hooks.yaml`` so that ``conhead`` becomes
   a `pre-commit <https://pre-commit.com>`_ plugin.
+- ``--delete`` switch that allows removal of existing headers.
 
 v0.1.1
 ------

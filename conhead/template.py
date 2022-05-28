@@ -24,7 +24,7 @@ class FieldKind(enum.Enum):
     Enumeration defining computed fields.
     """
 
-    YEAR = fields.Years
+    YEARS = fields.Years
 
     @property
     def type(self) -> type[fields.Field]:

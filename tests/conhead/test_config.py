@@ -43,7 +43,7 @@ class TestHeaderDef:
     @staticmethod
     def test_parser():
         cfg = config.HeaderDef(
-            name="test", template="test {{YEAR}} test", extensions=("ext1", "ext2")
+            name="test", template="test {{YEARS}} test", extensions=("ext1", "ext2")
         )
         assert cfg.parser.regex.pattern == "^test\\ (\\d{4}(?:-\\d{4})?)\\ test"
 
@@ -51,7 +51,7 @@ class TestHeaderDef:
         assert match
         assert match.groups() == ("2014-2018",)
 
-        assert cfg.parser.fields == (template.FieldKind.YEAR,)
+        assert cfg.parser.fields == (template.FieldKind.YEARS,)
 
     class TestFromDict:
         @staticmethod

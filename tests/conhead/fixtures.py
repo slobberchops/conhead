@@ -12,15 +12,15 @@ def populated_pyproject_toml() -> str:
             [tool.conhead.header.header1]
             extensions = ["ext1", "ext2"]
             template = """
-                # line 1 {{YEAR}}
-                # line 2 {{YEAR}}
+                # line 1 {{YEARS}}
+                # line 2 {{YEARS}}
             """
 
             [tool.conhead.header.header2]
             extensions = ["ext3", "ext4"]
             template = """
-                // line 1 {{YEAR}}
-                // line 2 {{YEAR}}
+                // line 1 {{YEARS}}
+                // line 2 {{YEARS}}
             """
         '''
 

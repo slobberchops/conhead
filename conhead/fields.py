@@ -40,7 +40,7 @@ class Years(Field["Years"]):
     start: int
     end: int
 
-    name = "YEAR"
+    name = "YEARS"
     regex = r"\d{4}(?:-\d{4})?"
 
     def __str__(self):

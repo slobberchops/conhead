@@ -42,7 +42,7 @@ Example:
     [tools.conhead.header.hashhead]
     extensions = ['py', 'toml', 'yaml']
     template = """
-        # Copyright {{YEAR}} Organized Organization
+        # Copyright {{YEARS}} Organized Organization
         # SPDX-License-Identifier: Apache-2.0
 
     """
@@ -50,7 +50,7 @@ Example:
     [tools.conhead.header.slashhead]
     extensions = ['c', 'cpp', 'java']
     template = """
-        // Copyright {{YEAR}} Organized Organization
+        // Copyright {{YEARS}} Organized Organization
         // SPDX-License-Identifier: Apache-2.0
 
     """
@@ -77,12 +77,12 @@ Notice a few things about the header template.
     withing the ``pyproject.toml`` configuration file, however
     ``conhead`` de-indents this text for you.
 -   The template contains a field that is kept up to date in
-    the target source file. In this case the ``{{YEAR}}`` field
+    the target source file. In this case the ``{{YEARS}}`` field
     writes the current year into every new template. If a file
     already contains a header with the year in it, and the year
     is different from the current year, it is updated to show
     a range of years. For example, a new template would have
-    the ``{{YEAR}}`` field replaced with ``2020`` if it was
+    the ``{{YEARS}}`` field replaced with ``2020`` if it was
     first written in ``2020``. When the header is then updated
     in ``2022``, this field is rewritten as ``2020-2022``.
 -   If you need to write some text that contains certain

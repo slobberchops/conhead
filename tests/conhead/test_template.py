@@ -16,7 +16,7 @@ class TestHeaderParser:
         @pytest.fixture
         def template_parser() -> template.HeaderParser:
             return template.HeaderParser(
-                fields=(template.FieldKind.YEAR, template.FieldKind.YEAR),
+                fields=(template.FieldKind.YEARS, template.FieldKind.YEARS),
                 regex=re.compile("^test (.*) test (.*)"),
             )
 
@@ -88,7 +88,7 @@ class TestTokenizeTemplate:
     @staticmethod
     def test_field():
         tokens = list(
-            template.tokenize_template("rights reserved\ncopyright {{YEAR}}.")
+            template.tokenize_template("rights reserved\ncopyright {{YEARS}}.")
         )
         assert tokens == [
             template.Token(
@@ -102,13 +102,13 @@ class TestTokenizeTemplate:
             ),
             template.Token(
                 template.TokenKind.FIELD,
-                "{{YEAR}}",
+                "{{YEARS}}",
                 2,
                 len("copyright ") + 1,
-                template.FieldKind.YEAR,
+                template.FieldKind.YEARS,
             ),
             template.Token(
-                template.TokenKind.CONTENT, ".", 2, len("copyright {{YEAR}}") + 1, "."
+                template.TokenKind.CONTENT, ".", 2, len("copyright {{YEARS}}") + 1, "."
             ),
         ]
 
@@ -155,10 +155,10 @@ class TestMakeTemplateRe:
 
     @staticmethod
     def test_years():
-        parser = template.make_template_parser("line 1 {{YEAR}}.\nline 2 {{YEAR}}.")
+        parser = template.make_template_parser("line 1 {{YEARS}}.\nline 2 {{YEARS}}.")
         assert parser.fields == (
-            template.FieldKind.YEAR,
-            template.FieldKind.YEAR,
+            template.FieldKind.YEARS,
+            template.FieldKind.YEARS,
         )
 
         match = parser.regex.match("line 1 2014.\nline 2 2014-2018.")
@@ -179,7 +179,7 @@ class TestMakeTemplateRe:
 def test_write_header():
     content = io.StringIO()
     template.write_header(
-        "start {{YEAR}} middle\n{{YEAR}} \\{end\\}",
+        "start {{YEARS}} middle\n{{YEARS}} \\{end\\}",
         (fields.Years(2019, 2019), fields.Years(2014, 2019)),
         content,
     )

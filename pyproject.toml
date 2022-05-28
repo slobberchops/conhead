@@ -83,7 +83,7 @@ reportUnsupportedDunderAll = true
 [tool.conhead.header.pylike]
 extensions = ['py', 'toml', 'yaml']
 template="""
-    # Copyright {{YEAR}} Rafe Kaplan
+    # Copyright {{YEARS}} Rafe Kaplan
     # SPDX-License-Identifier: Apache-2.0
 
 """

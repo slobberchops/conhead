@@ -1,6 +1,11 @@
 Changes
 =======
 
+- Can specify directory to command. Will process all files with
+  matching template configuration.
+- Support for new kinds of fields.
+- Renamed YEAR field to YEARS.
+
 v0.2.0
 ------
 

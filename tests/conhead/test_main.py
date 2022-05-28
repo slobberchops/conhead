@@ -5,6 +5,7 @@ import datetime
 import logging
 import pathlib
 
+import click
 import pytest
 
 from conhead import main
@@ -49,6 +50,12 @@ def test_naive_now():
 class TestMain:
     source_dir = staticmethod(fixtures.populated_source_dir)
     pyproject_toml = staticmethod(fixtures.populated_pyproject_toml)
+
+    @staticmethod
+    def test_check_and_delete_mutually_exclusive(cli_runner):
+        result = cli_runner.invoke(main.main, ["--check", "--delete"])
+        assert result.exit_code == click.BadOptionUsage.exit_code
+        assert "Error: --check and --delete are mutually exclusive" in result.stdout
 
     @staticmethod
     @pytest.mark.parametrize("pyproject_toml", [None])
@@ -160,3 +167,73 @@ class TestMain:
         assert result.exit_code == 1
 
         assert not caplog.record_tuples
+
+    @staticmethod
+    def test_delete(cli_runner, caplog):
+        result = cli_runner.invoke(
+            main.main,
+            [
+                "-vvv",
+                "--delete",
+                "src/no-header.ext3",
+                "src/up-to-date.ext2",
+                "src/out-of-date.ext4",
+            ],
+        )
+        assert result.exit_code == 1
+
+        rewritten = pathlib.Path("src/no-header.ext3").read_text()
+        assert rewritten == "// No proper header\n"
+
+        rewritten = pathlib.Path("src/up-to-date.ext2").read_text()
+        assert rewritten == ""
+
+        rewritten = pathlib.Path("src/out-of-date.ext4").read_text()
+        assert rewritten == "content\n"
+
+        (
+            process1,
+            missing_header,
+            process2,
+            up_to_date,
+            remove1,
+            process3,
+            out_of_date,
+            remove3,
+        ) = caplog.record_tuples
+
+        assert process1 == ("conhead", logging.INFO, "process src/no-header.ext3")
+
+        assert missing_header == (
+            "conhead",
+            logging.WARNING,
+            "missing header: src/no-header.ext3",
+        )
+
+        assert process2 == ("conhead", logging.INFO, "process src/up-to-date.ext2")
+
+        assert up_to_date == (
+            "conhead",
+            logging.INFO,
+            "up to date: src/up-to-date.ext2",
+        )
+
+        assert remove1 == (
+            "conhead",
+            logging.INFO,
+            "removing header: src/up-to-date.ext2",
+        )
+
+        assert process3 == ("conhead", logging.INFO, "process src/out-of-date.ext4")
+
+        assert out_of_date == (
+            "conhead",
+            logging.WARNING,
+            "out of date: src/out-of-date.ext4",
+        )
+
+        assert remove3 == (
+            "conhead",
+            logging.INFO,
+            "removing header: src/out-of-date.ext4",
+        )

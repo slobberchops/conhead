@@ -37,7 +37,7 @@ class TestCheckPath:
         result = process_module.check_path(
             conhead_config, NOW, logger, "src/unknown.ext1"
         )
-        assert not result.up_to_date
+        assert not result.is_up_to_date
         assert result.content is None
         assert result.updated_values is None
         assert result.header_def is None
@@ -55,7 +55,7 @@ class TestCheckPath:
         result = process_module.check_path(
             conhead_config, NOW, logger, "src/unreadable.ext1"
         )
-        assert not result.up_to_date
+        assert not result.is_up_to_date
         assert result.content is None
         assert result.updated_values is None
         assert result.header_def is None
@@ -78,7 +78,7 @@ class TestCheckPath:
         result = process_module.check_path(
             conhead_config, NOW, logger, "src/unknown.ext1"
         )
-        assert not result.up_to_date
+        assert not result.is_up_to_date
         assert result.content is None
         assert result.updated_values is None
         assert result.header_def is None
@@ -96,7 +96,7 @@ class TestCheckPath:
         result = process_module.check_path(
             conhead_config, NOW, logger, "src/unmatched.unknown"
         )
-        assert not result.up_to_date
+        assert not result.is_up_to_date
         assert result.content == source_dir["unmatched.unknown"]
         assert result.updated_values is None
         assert result.header_def is None
@@ -114,7 +114,7 @@ class TestCheckPath:
         result = process_module.check_path(
             conhead_config, NOW, logger, "src/empty.ext1"
         )
-        assert not result.up_to_date
+        assert not result.is_up_to_date
         assert result.content == source_dir["empty.ext1"]
         assert result.updated_values is None
         assert result.header_def is conhead_config.header_defs["header1"]
@@ -132,7 +132,7 @@ class TestCheckPath:
         result = process_module.check_path(
             conhead_config, NOW, logger, "src/no-header.ext3"
         )
-        assert not result.up_to_date
+        assert not result.is_up_to_date
         assert result.content == config.deindent_string(source_dir["no-header.ext3"])
         assert result.updated_values is None
         assert result.header_def is conhead_config.header_defs["header2"]
@@ -150,7 +150,7 @@ class TestCheckPath:
         result = process_module.check_path(
             conhead_config, NOW, logger, "src/out-of-date.ext4"
         )
-        assert not result.up_to_date
+        assert not result.is_up_to_date
         assert result.content == config.deindent_string(source_dir["out-of-date.ext4"])
         assert result.updated_values
         years1, years2 = result.updated_values
@@ -171,7 +171,7 @@ class TestCheckPath:
         result = process_module.check_path(
             conhead_config, NOW, logger, "src/up-to-date.ext2"
         )
-        assert result.up_to_date
+        assert result.is_up_to_date
         assert result.content == config.deindent_string(source_dir["up-to-date.ext2"])
         assert result.updated_values is None
         assert result.header_def is conhead_config.header_defs["header1"]
@@ -196,7 +196,13 @@ class TestRewriteFile:
         path.chmod(stat.S_IREAD)
 
         assert not process_module.rewrite_file(
-            "result.ext1", logger, "end of file\n", header_def, field_values, None
+            "result.ext1",
+            logger,
+            "end of file\n",
+            header_def,
+            field_values,
+            None,
+            False,
         )
 
         empty = pathlib.Path("result.ext1").read_text()
@@ -217,7 +223,13 @@ class TestRewriteFile:
         monkeypatch.setattr(pathlib.Path, "open", fake_open)
 
         assert not process_module.rewrite_file(
-            "result.ext1", logger, "end of file\n", header_def, field_values, None
+            "result.ext1",
+            logger,
+            "end of file\n",
+            header_def,
+            field_values,
+            None,
+            False,
         )
 
         process, error = caplog.record_tuples
@@ -233,7 +245,13 @@ class TestRewriteFile:
         header_def = conhead_config.header_defs["header1"]
         field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
         assert process_module.rewrite_file(
-            "result.ext1", logger, "end of file\n", header_def, field_values, None
+            "result.ext1",
+            logger,
+            "end of file\n",
+            header_def,
+            field_values,
+            None,
+            False,
         )
 
         with_header = pathlib.Path("result.ext1").read_text()
@@ -256,6 +274,7 @@ class TestRewriteFile:
             header_def,
             field_values,
             parsed_values,
+            False,
         )
 
         with_header = pathlib.Path("result.ext1").read_text()
@@ -263,3 +282,25 @@ class TestRewriteFile:
 
         (process,) = caplog.record_tuples
         assert process == ("test", logging.INFO, "rewriting: result.ext1")
+
+    def test_remove_header_has_header(self, conhead_config, logger, caplog):
+        header_def = conhead_config.header_defs["header1"]
+        field_values = (template.Years(2019, 2019), template.Years(2014, 2019))
+        existing_header = "# line 1 2011\n# line 2 2011-2014\n"
+        existing_content = f"{existing_header}end of file\n"
+        parsed_values = template.ParsedValues(field_values, existing_header)
+        assert process_module.rewrite_file(
+            pathlib.Path("result.ext1"),
+            logger,
+            existing_content,
+            header_def,
+            field_values,
+            parsed_values,
+            True,
+        )
+
+        with_header = pathlib.Path("result.ext1").read_text()
+        assert with_header == "end of file\n"
+
+        (process,) = caplog.record_tuples
+        assert process == ("test", logging.INFO, "removing header: result.ext1")

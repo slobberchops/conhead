@@ -24,7 +24,7 @@ class CheckResult:
 
     Attributes:
 
-    :up_to_date: If file exists, has a header and is up to date, this is True
+    :is_up_to_date: If file exists, has a header and is up to date, this is True
         else False.
     :content: Full content of parsed file.
     :header_def: `HeaderDef` configuration matched for file.
@@ -35,11 +35,23 @@ class CheckResult:
         header.
     """
 
-    up_to_date: bool
+    is_up_to_date: bool
     content: Optional[str]
     header_def: Optional[config.HeaderDef]
     updated_values: Optional[template.FieldValues]
     parsed_values: Optional[template.ParsedValues]
+
+    @property
+    def has_content(self):
+        return bool(self.content)
+
+    @property
+    def has_header(self):
+        return bool(self.parsed_values)
+
+    @property
+    def is_headerless(self):
+        return self.has_content and not self.has_header
 
 
 def check_path(
@@ -118,8 +130,9 @@ def rewrite_file(
     logger: logging.Logger,
     content: str,
     header_def: config.HeaderDef,
-    field_values: template.FieldValues,
+    field_values: Optional[template.FieldValues],
     parsed_values: Optional[template.ParsedValues],
+    remove_header: bool,
 ) -> bool:
     """
     Re-write a file based on result of previous check.
@@ -131,12 +144,17 @@ def rewrite_file(
     :param header_def: Rewrite using header definition.
     :param field_values: Sequence of up to date values for rewritten header.
     :param parsed_values: Values originally parsed from matched header.
+    :param remove_header: If False, will re-write file with header, else will
+        omit header.
     :return: True if header rewritten, else False.
     """
     if isinstance(path, str):
         path = pathlib.Path(path)
 
-    logger.info("rewriting: %s", path)
+    if remove_header:
+        logger.info("removing header: %s", path)
+    else:
+        logger.info("rewriting: %s", path)
     if parsed_values:
         header_len = len(parsed_values.header)
         headerless_content = content[header_len:]
@@ -145,7 +163,9 @@ def rewrite_file(
 
     try:
         with path.open("w") as source_file:
-            template.write_header(header_def.template, field_values, source_file)
+            if not remove_header:
+                assert field_values is not None
+                template.write_header(header_def.template, field_values, source_file)
             source_file.write(headerless_content)
     except PermissionError:
         logger.error("unwritable: %s", path)

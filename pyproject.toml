@@ -83,7 +83,7 @@ reportUnnecessaryCast = true
 reportUnsupportedDunderAll = true
 
 [tool.conhead.header.pylike]
-extensions = ['py', 'toml', 'yaml']
+extensions = ['py', 'toml', 'yaml', 'yml']
 template="""
     # Copyright {{YEARS}} Rafe Kaplan
     # SPDX-License-Identifier: Apache-2.0

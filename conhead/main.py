@@ -141,7 +141,7 @@ def main(paths, check, delete, verbose, quiet):
 
                 # Ignore files that are found by searching a directory
                 # but are not handled by any template.
-                if not (result.has_header or is_param):
+                if not (result.header_def or is_param):
                     continue
 
                 if delete:

@@ -55,5 +55,8 @@ def populated_source_dir() -> file_testing.DirContent:
                 file3
             """,
             "file3.unknown": "file3",
+            "file4.ext1": """\
+                file4
+            """,
         },
     }

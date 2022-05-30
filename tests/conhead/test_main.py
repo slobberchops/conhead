@@ -246,8 +246,17 @@ class TestMain:
                 "src/sub-dir",
             ],
         )
-        assert result.exit_code == 0
-        process1, up_to_date1, skip, process2, up_to_date2 = caplog.record_tuples
+        assert result.exit_code == 1
+        (
+            process1,
+            up_to_date1,
+            skip,
+            process2,
+            up_to_date2,
+            process3,
+            missing,
+            write,
+        ) = caplog.record_tuples
 
         assert process1 == (
             "conhead",
@@ -264,6 +273,24 @@ class TestMain:
             "conhead",
             logging.DEBUG,
             "checking: src/sub-dir/file2.ext3",
+        )
+
+        assert process3 == (
+            "conhead",
+            logging.DEBUG,
+            "checking: src/sub-dir/file4.ext1",
+        )
+
+        assert missing == (
+            "conhead",
+            logging.WARNING,
+            "missing header: src/sub-dir/file4.ext1",
+        )
+
+        assert write == (
+            "conhead",
+            logging.INFO,
+            "rewriting: src/sub-dir/file4.ext1",
         )
 
     @staticmethod
@@ -354,6 +381,7 @@ class TestMain:
             "checking: src/sub-dir/file1.ext1",
             "skipping: src/sub-dir/file3.unknown",
             "checking: src/sub-dir/file2.ext3",
+            "checking: src/sub-dir/file4.ext1",
             "checking: src/unreadable.ext1",
             "checking: src/empty.ext1",
             "skipping: src/unmatched.unknown",

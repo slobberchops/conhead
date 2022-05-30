@@ -5,6 +5,7 @@
 import os
 import pathlib
 import stat
+import sys
 from typing import Union
 
 from conhead import config
@@ -52,6 +53,14 @@ class Symlink:
         self.ref = ref
 
 
+class Fifo:
+    """
+    Unix Fifo.
+
+    Do not attempt to use on Windows.
+    """
+
+
 def write_content(path: pathlib.Path, entry: DirEntry):
     """
     Write directory entry to path.
@@ -79,6 +88,9 @@ def write_content(path: pathlib.Path, entry: DirEntry):
         target = path.parent / entry.ref
         is_dir = target.is_dir()
         path.symlink_to(entry.ref, target_is_directory=is_dir)
+    elif isinstance(entry, Fifo):
+        assert not sys.platform.startswith("win")
+        os.mkfifo(path)
     elif entry is None:
         pass
     else:

@@ -53,7 +53,7 @@ def project_dir(tmp_path, project_dir_content) -> Iterator[pathlib.Path]:
 
 @pytest.fixture
 def conhead_config(pyproject_toml) -> config.Config:
-    return config.load() or config.Config(header_defs=util.FrozenDict())
+    return config.load_from_pyproject() or config.Config(header_defs=util.FrozenDict())
 
 
 @pytest.fixture

@@ -6,6 +6,7 @@ import datetime
 import inspect
 import logging
 import pathlib
+import sys
 
 import click
 import pytest
@@ -79,6 +80,14 @@ class TestIterFilesystem:
             "a-dir/another-dir/a-sub-file3"
         )
 
+    @staticmethod
+    @pytest.mark.skipif(sys.platform.startswith("win"), reason="Do not run on Windows")
+    @pytest.mark.parametrize("project_dir_content", [{"a-pipe": file_testing.Fifo()}])
+    def test_iter_non_file(project_dir):
+        iterator = main.iter_dir(project_dir)
+        assert inspect.isgenerator(iterator)
+        assert list(iterator) == []
+
     class TestIterPath:
         @staticmethod
         def test_file(project_dir):
@@ -137,8 +146,63 @@ class TestMain:
         assert record == (
             "conhead",
             logging.ERROR,
+            "pyproject.toml not found",
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize("pyproject_toml", [""])
+    def test_no_header_defs(cli_runner, caplog):
+        result = cli_runner.invoke(main.main, [])
+        assert result.exit_code == 1
+
+        (record,) = caplog.record_tuples
+        assert record == (
+            "conhead",
+            logging.ERROR,
             "no header configuration defined",
         )
+
+    class TestCustomConfig:
+        @staticmethod
+        @pytest.fixture
+        def pyproject_toml():
+            return None
+
+        conhead_toml = staticmethod(fixtures.populated_pyproject_toml)
+
+        @staticmethod
+        @pytest.fixture
+        def project_dir_content(project_dir_content, conhead_toml):
+            project_dir_content["conhead.toml"] = conhead_toml
+            return project_dir_content
+
+        @staticmethod
+        @pytest.mark.parametrize("conhead_toml", [None])
+        def test_config_error(cli_runner, caplog):
+            result = cli_runner.invoke(
+                main.main, ["--config", "conhead.toml", "src/up-to-date.ext2"]
+            )
+            assert result.exit_code == 1
+
+            assert caplog.record_tuples == [
+                (
+                    "conhead",
+                    logging.ERROR,
+                    (
+                        "Unable read configuration: [Errno 2] "
+                        "No such file or directory: 'conhead.toml'"
+                    ),
+                )
+            ]
+
+        @staticmethod
+        def test_success(cli_runner, caplog):
+            result = cli_runner.invoke(
+                main.main, ["--config", "conhead.toml", "src/up-to-date.ext2"]
+            )
+            assert result.exit_code == 0
+
+            assert caplog.record_tuples == []
 
     @staticmethod
     def test_no_errors(cli_runner, caplog):

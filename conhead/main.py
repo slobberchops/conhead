@@ -15,7 +15,6 @@ import click
 
 from conhead import config
 from conhead import process
-from conhead import util
 
 
 @contextlib.contextmanager
@@ -104,6 +103,14 @@ def iter_path(path: pathlib.Path) -> Iterator[tuple[pathlib.Path, bool]]:
     ),
 )
 @click.option(
+    "config_path",
+    "--config",
+    "-C",
+    default=None,
+    type=str,
+    help="Alternate location for configuration file",
+)
+@click.option(
     "--verbose",
     "-v",
     count=True,
@@ -115,7 +122,7 @@ def iter_path(path: pathlib.Path) -> Iterator[tuple[pathlib.Path, bool]]:
     count=True,
     help="Decrease log verbosity. May be used more than once.",
 )
-def main(paths, check, delete, verbose, quiet):
+def main(paths, check, delete, config_path, verbose, quiet):
     """
     Consistent header manager
 
@@ -124,7 +131,17 @@ def main(paths, check, delete, verbose, quiet):
     for files that already have them.
     """
     with conhead_logger(verbose, quiet) as logger:
-        cfg = config.load() or config.Config(header_defs=util.FrozenDict())
+        try:
+            if config_path is None:
+                cfg = config.load_from_pyproject()
+                if cfg is None:
+                    logger.error("pyproject.toml not found")
+                    sys.exit(1)
+            else:
+                cfg = config.load(pathlib.Path(config_path))
+        except OSError as err:
+            logger.error(f"Unable read configuration: {err}")
+            sys.exit(1)
         if not cfg.header_defs:
             logger.error("no header configuration defined")
             sys.exit(1)

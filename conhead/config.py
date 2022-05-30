@@ -236,27 +236,22 @@ def find_pyproject() -> Optional[pathlib.Path]:
     return None
 
 
-def parse() -> Optional[dict[str, Any]]:
+def parse(path: pathlib.Path) -> dict[str, Any]:
     """
     Parse `pyproject.toml`.
 
     :return: Returns dictionaries as parsed by `tomli` library.
     """
-    project_path = find_pyproject()
-    if not project_path:
-        return None
-    with open(project_path, "rb") as project_file:
+    with path.open("rb") as project_file:
         return tomli.load(project_file)
 
 
-def load() -> Optional[Config]:
+def load(path: pathlib.Path) -> Config:
     """
-    Load conhead configuration.
+    Load `conhead` configuration.
     :return: Populated `Config` if found, else None.
     """
-    config_file = parse()
-    if not config_file:
-        return None
+    config_file = parse(path)
     tools = config_file.get("tool", {})
     if not isinstance(tools, dict):
         raise ConfigError("tool must be section")
@@ -264,3 +259,14 @@ def load() -> Optional[Config]:
     if not isinstance(conhead, dict):
         raise ConfigError("tool.conhead must be section")
     return Config.from_dict(conhead)
+
+
+def load_from_pyproject() -> Optional[Config]:
+    """
+    Load `conhead` configuration from default pyproject.toml.
+    :return:
+    """
+    pyproject_path = find_pyproject()
+    if not pyproject_path:
+        return None
+    return load(pyproject_path)

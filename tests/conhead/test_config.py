@@ -69,7 +69,7 @@ class TestHeaderDef:
                 config.ConfigError,
                 match=r"^tool.conhead.header.py: template is required$",
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize(
@@ -86,7 +86,7 @@ class TestHeaderDef:
                 config.ConfigError,
                 match=r"^tool.conhead.header.py: template must be str$",
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize(
@@ -104,7 +104,7 @@ class TestHeaderDef:
                 config.ConfigError,
                 match=r"^tool.conhead.header.py: extensions must be list of strings$",
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize(
@@ -122,7 +122,7 @@ class TestHeaderDef:
                 config.ConfigError,
                 match=r"^tool.conhead.header.py: extensions must be list of strings$",
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize(
@@ -142,7 +142,7 @@ class TestHeaderDef:
                 config.ConfigError,
                 match=r"^unexpected options: unexpected1, unexpected2, unexpected3$",
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize(
@@ -290,7 +290,7 @@ class TestConfig:
             with pytest.raises(
                 config.ConfigError, match=r"^tool.conhead.header must be section$"
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize(
@@ -307,7 +307,7 @@ class TestConfig:
                 config.ConfigError,
                 match=r"^tool.conhead.header.header1 must be section$",
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize(
@@ -326,7 +326,7 @@ class TestConfig:
                 config.ConfigError,
                 match=r"^unexpected options: unexpected1, unexpected2, unexpected3$",
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize(
@@ -344,12 +344,12 @@ class TestConfig:
                 config.ConfigError,
                 match=r"^unexpected sections: unexpected1, unexpected2, unexpected3$",
             ):
-                config.load()
+                config.load_from_pyproject()
 
         @staticmethod
         @pytest.mark.parametrize("pyproject_toml", ["other-options = 10"])
         def test_no_definitions():
-            loaded = config.load()
+            loaded = config.load_from_pyproject()
             assert loaded == config.Config(header_defs=util.FrozenDict())
 
 
@@ -396,19 +396,14 @@ class TestParse:
 
     @staticmethod
     def test_success():
-        assert config.parse() == {"config": {"content": {"name": "value"}}}
-
-    @staticmethod
-    @pytest.mark.parametrize("project_dir_content", [{}])
-    def test_not_found():
-        assert config.parse() is None
+        pyproject_path = config.find_pyproject()
+        assert pyproject_path
+        assert config.parse(pyproject_path) == {
+            "config": {"content": {"name": "value"}}
+        }
 
 
 class TestLoad:
-    @staticmethod
-    def test_not_found():
-        assert config.load() is None
-
     @staticmethod
     @pytest.mark.parametrize(
         "pyproject_toml",
@@ -429,7 +424,9 @@ class TestLoad:
         ],
     )
     def test_success():
-        conhead_config = config.load()
+        pyproject_path = config.find_pyproject()
+        assert pyproject_path
+        conhead_config = config.load(pyproject_path)
         assert conhead_config
         assert conhead_config.header_defs.keys() == {"py", "toml"}
 
@@ -453,7 +450,7 @@ class TestLoad:
     )
     def test_tool_not_section():
         with pytest.raises(config.ConfigError, match=r"^tool must be section$"):
-            config.load()
+            config.load_from_pyproject()
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -467,4 +464,32 @@ class TestLoad:
     )
     def test_conhead_not_section():
         with pytest.raises(config.ConfigError, match=r"^tool.conhead must be section$"):
-            config.load()
+            config.load_from_pyproject()
+
+
+class TestLoadFromPyproject:
+    @staticmethod
+    def test_not_found():
+        assert config.load_from_pyproject() is None
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "pyproject_toml",
+        [
+            '''
+                [tool.conhead.header.py]
+                template = """
+                  # Python header
+                  # License X
+                """
+
+                [tool.conhead.header.toml]
+                template = """
+                  # Toml header
+                  # License X
+                """
+            '''
+        ],
+    )
+    def test_found():
+        assert config.load_from_pyproject() is not None

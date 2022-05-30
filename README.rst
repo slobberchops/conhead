@@ -143,7 +143,7 @@ For example:
 .. code-block:: yaml
 
     - repo: https://github.com/slobberchops/conhead
-      rev: v0.2.0
+      rev: v0.3.0
       hooks:
 
         - id: conhead

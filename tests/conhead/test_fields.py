@@ -7,6 +7,9 @@ import pytest
 
 from conhead import fields
 
+NOW_DATETIME = datetime.datetime(2019, 12, 10)
+NOW_DATE = NOW_DATETIME.date()
+
 
 class TestYears:
     class TestStr:
@@ -41,11 +44,24 @@ class TestYears:
 
     @staticmethod
     def test_new():
-        now = datetime.datetime(2014, 12, 10)
-        assert fields.Years.new(now) == fields.Years(2014, 2014)
+        assert fields.Years.new(NOW_DATETIME) == fields.Years(2019, 2019)
 
     @staticmethod
     def test_update():
-        now = datetime.datetime(2019, 12, 10)
         original = fields.Years(2014, 2015)
-        assert original.update(now) == fields.Years(2014, 2019)
+        assert original.update(NOW_DATETIME) == fields.Years(2014, 2019)
+
+
+class TestDate:
+    @staticmethod
+    def test_str():
+        assert str(fields.Date(NOW_DATE)) == "2019-12-10"
+
+    @staticmethod
+    def test_new():
+        assert fields.Date.new(NOW_DATETIME) == fields.Date(NOW_DATE)
+
+    @staticmethod
+    def test_update():
+        original = fields.Date(datetime.date(2012, 6, 12))
+        assert original.update(NOW_DATETIME) == fields.Date(NOW_DATE)

@@ -24,6 +24,7 @@ class FieldKind(enum.Enum):
     Enumeration defining computed fields.
     """
 
+    DATE = fields.Date
     YEARS = fields.Years
 
     @property
@@ -80,16 +81,20 @@ class Token(Generic[T]):
         self.__parsed = parsed
 
     def __repr__(self):
-        return f"<token:{self.kind.name} {self.unparsed!r} {self.row}:{self.column}>"
+        return (
+            f"<token:{self.kind.name} "
+            f"{self.unparsed!r} {self.row}:{self.column} "
+            f"{self.parsed}>"
+        )
 
     def __eq__(self, other):
         if isinstance(other, Token):
             return (self.kind, self.unparsed, self.row, self.column, self.parsed) == (
                 other.kind,
                 other.unparsed,
-                self.row,
-                self.column,
-                self.parsed,
+                other.row,
+                other.column,
+                other.parsed,
             )
         else:
             return NotImplemented

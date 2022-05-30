@@ -1,6 +1,7 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 
+import datetime
 import io
 import re
 
@@ -9,15 +10,111 @@ import pytest
 from conhead import fields
 from conhead import template
 
+PARSER_TEST_DATA = [
+    [template.FieldKind.YEARS, "2014-2018", fields.Years(2014, 2018)],
+    [template.FieldKind.DATE, "2012-06-12", fields.Date(datetime.date(2012, 6, 12))],
+]
+
+
+class TestToken:
+    @staticmethod
+    @pytest.fixture
+    def token() -> template.Token:
+        return template.Token(
+            template.TokenKind.FIELD, "{{YEARS}}", 10, 20, template.FieldKind.YEARS
+        )
+
+    @staticmethod
+    def test_kind(token):
+        assert token.kind == template.TokenKind.FIELD
+
+    @staticmethod
+    def test_unparsed(token):
+        assert token.unparsed == "{{YEARS}}"
+
+    @staticmethod
+    def test_row(token):
+        assert token.row == 10
+
+    @staticmethod
+    def test_column(token):
+        assert token.column == 20
+
+    @staticmethod
+    def test_parsed(token):
+        assert token.parsed == template.FieldKind.YEARS
+
+    @staticmethod
+    def test_repr(token):
+        assert repr(token) == "<token:FIELD '{{YEARS}}' 10:20 FieldKind.YEARS>"
+
+    class TestEq:
+        @staticmethod
+        def test_is(token):
+            other = template.Token(
+                template.TokenKind.FIELD, "{{YEARS}}", 10, 20, template.FieldKind.YEARS
+            )
+            assert token == other
+
+        @staticmethod
+        @pytest.mark.parametrize(
+            "other",
+            [
+                template.Token(
+                    template.TokenKind.ESCAPED,
+                    "{{YEARS}}",
+                    10,
+                    20,
+                    template.FieldKind.YEARS,
+                ),
+                template.Token(
+                    template.TokenKind.FIELD,
+                    "{{DATE}}",
+                    10,
+                    20,
+                    template.FieldKind.YEARS,
+                ),
+                template.Token(
+                    template.TokenKind.FIELD,
+                    "{{YEARS}}",
+                    12,
+                    20,
+                    template.FieldKind.YEARS,
+                ),
+                template.Token(
+                    template.TokenKind.FIELD,
+                    "{{YEARS}}",
+                    10,
+                    22,
+                    template.FieldKind.YEARS,
+                ),
+                template.Token(
+                    template.TokenKind.FIELD,
+                    "{{YEARS}}",
+                    10,
+                    20,
+                    template.FieldKind.DATE,
+                ),
+                "not a token",
+            ],
+        )
+        def test_is_not(token, other):
+            assert token != other
+
 
 class TestHeaderParser:
     class TestParseFields:
         @staticmethod
         @pytest.fixture
-        def template_parser() -> template.HeaderParser:
+        def template_field_kind() -> template.FieldKind:
+            return template.FieldKind.YEARS
+
+        @staticmethod
+        @pytest.fixture
+        def template_parser(template_field_kind) -> template.HeaderParser:
             return template.HeaderParser(
-                fields=(template.FieldKind.YEARS, template.FieldKind.YEARS),
-                regex=re.compile("^test (.*) test (.*)"),
+                fields=tuple([template_field_kind]),
+                regex=re.compile("^test (.*) test"),
             )
 
         @staticmethod
@@ -25,22 +122,15 @@ class TestHeaderParser:
             assert template_parser.parse_fields("has no header") is None
 
         @staticmethod
-        def test_single_years(template_parser):
-            values = template_parser.parse_fields("test 2014 test 2015\ncontent")
-            year1, year2 = values.fields
-            assert year1 == fields.Years(2014, 2014)
-            assert year2 == fields.Years(2015, 2015)
-            assert values.header == "test 2014 test 2015"
-
-        @staticmethod
-        def test_year_range(template_parser):
-            values = template_parser.parse_fields(
-                "test 2014-2016 test 2015-2019\n content"
-            )
-            year1, year2 = values.fields
-            assert year1 == fields.Years(2014, 2016)
-            assert year2 == fields.Years(2015, 2019)
-            assert values.header == "test 2014-2016 test 2015-2019"
+        @pytest.mark.parametrize(
+            "template_field_kind,unparsed,parsed", PARSER_TEST_DATA
+        )
+        def test_match_fields(template_parser, unparsed, parsed):
+            header = f"test {unparsed} test"
+            field_values = template_parser.parse_fields(f"{header}\ncontent")
+            (value,) = field_values.fields
+            assert value == parsed
+            assert field_values.header == header
 
 
 class TestTokenizeTemplate:
@@ -86,10 +176,52 @@ class TestTokenizeTemplate:
         ]
 
     @staticmethod
-    def test_field():
+    @pytest.mark.parametrize(
+        "field_name,field_kind", [(k.name, k) for k in template.FieldKind]
+    )
+    def test_field(field_name, field_kind):
         tokens = list(
-            template.tokenize_template("rights reserved\ncopyright {{YEARS}}.")
+            template.tokenize_template(
+                f"rights reserved\ncopyright {{{{{field_name}}}}}."
+            )
         )
+        for a, b in zip(
+            tokens,
+            [
+                template.Token(
+                    template.TokenKind.CONTENT,
+                    "rights reserved",
+                    1,
+                    1,
+                    "rights reserved",
+                ),
+                template.Token(
+                    template.TokenKind.NEWLINE,
+                    "\n",
+                    1,
+                    len("rights reserved") + 1,
+                    "\n",
+                ),
+                template.Token(
+                    template.TokenKind.CONTENT, "copyright ", 2, 1, "copyright "
+                ),
+                template.Token(
+                    template.TokenKind.FIELD,
+                    f"{{{{{field_name}}}}}",
+                    2,
+                    len("copyright ") + 1,
+                    field_kind,
+                ),
+                template.Token(
+                    template.TokenKind.CONTENT,
+                    ".",
+                    2,
+                    len(f"copyright {{{{{field_name}}}}}") + 1,
+                    ".",
+                ),
+            ],
+        ):
+            assert a == b
         assert tokens == [
             template.Token(
                 template.TokenKind.CONTENT, "rights reserved", 1, 1, "rights reserved"
@@ -102,13 +234,17 @@ class TestTokenizeTemplate:
             ),
             template.Token(
                 template.TokenKind.FIELD,
-                "{{YEARS}}",
+                f"{{{{{field_name}}}}}",
                 2,
                 len("copyright ") + 1,
-                template.FieldKind.YEARS,
+                field_kind,
             ),
             template.Token(
-                template.TokenKind.CONTENT, ".", 2, len("copyright {{YEARS}}") + 1, "."
+                template.TokenKind.CONTENT,
+                ".",
+                2,
+                len(f"copyright {{{{{field_name}}}}}") + 1,
+                ".",
             ),
         ]
 
@@ -154,17 +290,18 @@ class TestMakeTemplateRe:
         )
 
     @staticmethod
-    def test_years():
-        parser = template.make_template_parser("line 1 {{YEARS}}.\nline 2 {{YEARS}}.")
-        assert parser.fields == (
-            template.FieldKind.YEARS,
-            template.FieldKind.YEARS,
+    @pytest.mark.parametrize(
+        "template_field_kind,unparsed", [d[:2] for d in PARSER_TEST_DATA]
+    )
+    def test_fields(template_field_kind, unparsed):
+        parser = template.make_template_parser(
+            f"line 1 {{{{{template_field_kind.name}}}}}.\n"
         )
+        assert parser.fields == (template_field_kind,)
 
-        match = parser.regex.match("line 1 2014.\nline 2 2014-2018.")
+        match = parser.regex.match(f"line 1 {unparsed}.\ncontent")
         assert match
-        assert match.group(1) == "2014"
-        assert match.group(2) == "2014-2018"
+        assert match.group(1) == unparsed
 
     @staticmethod
     def test_escaping():
@@ -176,12 +313,13 @@ class TestMakeTemplateRe:
         assert match
 
 
-def test_write_header():
+@pytest.mark.parametrize("template_field_kind,unparsed,parsed", PARSER_TEST_DATA)
+def test_write_header(template_field_kind, unparsed, parsed):
     content = io.StringIO()
     template.write_header(
-        "start {{YEARS}} middle\n{{YEARS}} \\{end\\}",
-        (fields.Years(2019, 2019), fields.Years(2014, 2019)),
+        f"start {{{{{template_field_kind.name}}}}} end\n",
+        (parsed,),
         content,
     )
 
-    assert content.getvalue() == "start 2019 middle\n2014-2019 {end}"
+    assert content.getvalue() == f"start {parsed} end\n"

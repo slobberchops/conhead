@@ -1,3 +1,7 @@
+v0.4.0
+======
+- Provide alternate location for configuration file.
+
 v0.3.0
 ======
 

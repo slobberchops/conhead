@@ -1,5 +1,7 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
+#
+# Updated: 2022-05-30
 
 [tool.poetry]
 name = "conhead"
@@ -85,4 +87,6 @@ extensions = ['py', 'toml', 'yaml']
 template="""
     # Copyright {{YEARS}} Rafe Kaplan
     # SPDX-License-Identifier: Apache-2.0
+    #
+    # Updated: {{DATE}}
 """

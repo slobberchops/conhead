@@ -20,7 +20,8 @@ project = conhead.project_name
 author = "Rafe Kaplan"
 copyright = f"2022, {author}"
 
-release = conhead.version
+release = "0.4"
+version = "0.4.0"
 
 
 # -- General configuration ---------------------------------------------------

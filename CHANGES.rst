@@ -4,6 +4,10 @@
 
     Updated: 2022-06-06
 
+Next Version
+============
+- Integration with readthe docs at https://conhead.readthedocs.io.
+
 v0.4.0
 ======
 - Provide alternate location for configuration file.

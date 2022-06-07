@@ -20,8 +20,8 @@ project = conhead.project_name
 author = "Rafe Kaplan"
 copyright = f"2022, {author}"
 
-release = conhead.version
-
+version = conhead.version
+release = ".".join(version.split(".")[2:])
 
 # -- General configuration ---------------------------------------------------
 

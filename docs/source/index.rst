@@ -4,10 +4,8 @@
 
     Updated: 2022-06-06
 
-Conhead
-=======
-
-Consistent header management.
+conhead: Consistent Headers
+===========================
 
 CLI tool for applying and maintaining consistent headers across source
 files.
@@ -16,6 +14,10 @@ files.
 -   Update fields in files that already have them.
 -   Maintain different header configurations for different file
     types
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
 Installation
 ------------

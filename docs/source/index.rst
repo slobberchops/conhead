@@ -4,8 +4,8 @@
 
     Updated: 2022-06-06
 
-Consistent Headers
-==================
+conhead: Consistent Headers
+===========================
 
 .. toctree::
    :maxdepth: 2

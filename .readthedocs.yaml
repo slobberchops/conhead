@@ -11,3 +11,11 @@ build:
     python: "3.9"
 
 formats: all
+
+python:
+  install:
+    - method: pip
+      path: .
+
+sphinx:
+  fail_on_warning: true

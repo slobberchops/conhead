@@ -93,7 +93,7 @@ Notice a few things about the header template.
     in ``2022``, this field is rewritten as ``2020-2022``.
 -   If you need to write some text that contains certain
     characters used to describe fields, you must escape them.
-    Examples are ``\{``, ``\}`` and `\\`. These characters will
+    Examples are ``\{``, ``\}`` and ``\\``. These characters will
     appear in the rendered header without the preceding slash.
 
 Usage

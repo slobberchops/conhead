@@ -1,10 +1,11 @@
-.. conhead documentation master file, created by
-   sphinx-quickstart on Mon May 30 13:12:33 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+..
+    Copyright 2022 Rafe Kaplan
+    SPDX-License-Identifier: Apache-2.0
 
-Welcome to conhead's documentation!
-===================================
+    Updated: 2022-06-06
+
+Consistent Headers
+==================
 
 .. toctree::
    :maxdepth: 2

@@ -91,3 +91,13 @@ template="""
     #
     # Updated: {{DATE}}
 """
+
+[tool.conhead.header.webhead]
+extensions = ['rst']
+template = """
+..
+    Copyright {{YEARS}} Rafe Kaplan
+    SPDX-License-Identifier: Apache-2.0
+
+    Updated: {{DATE}}
+"""

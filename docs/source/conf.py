@@ -1,7 +1,7 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-06-06
+# Updated: 2022-06-07
 #
 # Configuration file for the Sphinx documentation builder.
 
@@ -33,5 +33,5 @@ exclude_patterns = []
 
 # -- Options for HTML output -------------------------------------------------
 
-html_theme = "alabaster"
+html_theme = "classic"
 # html_static_path = ["_static"]

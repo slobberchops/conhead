@@ -52,7 +52,6 @@ Example:
     template = """
         # Copyright {{YEARS}} Organized Organization
         # SPDX-License-Identifier: Apache-2.0
-
     """
 
     [tools.conhead.header.slashhead]
@@ -60,7 +59,14 @@ Example:
     template = """
         // Copyright {{YEARS}} Organized Organization
         // SPDX-License-Identifier: Apache-2.0
+    """
 
+    [tools.conhead.header.dashhead]
+    extensions = ['html']
+    template = """
+        <!-- Copyright {{YEARS}} Organized Organization
+             SPDX-License-Identifier: Apache-2.0
+        -->
     """
 
 Template Definition

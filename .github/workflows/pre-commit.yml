@@ -10,20 +10,17 @@ on:
 jobs:
   pre-commit:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10']
-    name: Run pre-commit checks on python ${{ matrix.python-version }}
+    name: Run pre-commit checks
     steps:
 
     - uses: actions/checkout@v3
 
     - uses: actions/setup-python@v3
       with:
-        python-version: "${{ matrix.python-version }}"
+        python-version: 3.10
         architecture: x64
 
-    - run: pipx install --python python${{ matrix.python-version }} poetry
-    - run: pipx install --python python${{ matrix.python-version }} pre-commit
+    - run: pipx install --python python poetry
+    - run: pipx install --python python pre-commit
     - run: poetry install
-    - run: pre-commit run -a
+    - run: SKIP=test pre-commit run -a

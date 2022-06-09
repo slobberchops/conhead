@@ -1,0 +1,29 @@
+# Copyright 2022 Rafe Kaplan
+# SPDX-License-Identifier: Apache-2.0
+#
+# Updated: 2022-05-30
+name: Run pre-commit
+
+on:
+  pull_request:
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10']
+    name: Run pre-commit checks on python ${{ matrix.python-version }}
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v3
+      with:
+        python-version: "${{ matrix.python-version }}"
+        architecture: x64
+
+    - run: pipx install --python python${{ matrix.python-version }} poetry
+    - run: pipx install --python python${{ matrix.python-version }} pre-commit
+    - run: poetry install
+    - run: poetry run pytest

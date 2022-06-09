@@ -10,7 +10,7 @@ on:
 
 jobs:
   pre-commit:
-    runs-on: macos-latest
+    runs-on: ubuntu-20.04
     name: Pre-commit checks
     steps:
 

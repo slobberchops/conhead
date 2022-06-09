@@ -1,7 +1,8 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Created: 2022-06-06
+# Updated: 2022-06-09
 import contextlib
 import dataclasses
 import datetime
@@ -180,7 +181,8 @@ def main(paths, check, delete, config_path, verbose, quiet):
                         values = result.updated_values
                     else:
                         values = tuple(
-                            f.type.new(now) for f in result.header_def.parser.fields
+                            f.type.new(now, path)
+                            for f in result.header_def.parser.fields
                         )
 
                 assert result.content

@@ -1,14 +1,18 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Created: 2022-06-06
+# Updated: 2022-06-09
 import abc
 import dataclasses
 import datetime
+import pathlib
 import re
 from typing import ClassVar
 from typing import Generic
 from typing import TypeVar
+
+from conhead import util
 
 T = TypeVar("T", bound="Field")
 
@@ -25,10 +29,10 @@ class Field(Generic[T], abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def new(cls, now: datetime.datetime) -> T:
+    def new(cls, now: datetime.datetime, path: pathlib.Path) -> T:
         ...  # pragma: no cover
 
-    def update(self, now: datetime.datetime) -> T:
+    def update(self, now: datetime.datetime, path: pathlib.Path) -> T:
         ...  # pragma: no cover
 
 
@@ -68,10 +72,10 @@ class Years(Field["Years"]):
         return cls(start, end)
 
     @classmethod
-    def new(cls, now: datetime.datetime) -> "Years":
+    def new(cls, now: datetime.datetime, path: pathlib.Path) -> "Years":
         return cls(now.year, now.year)
 
-    def update(self, now: datetime.datetime) -> "Years":
+    def update(self, now: datetime.datetime, path: pathlib.Path) -> "Years":
         return type(self)(self.start, now.year)
 
 
@@ -79,24 +83,40 @@ _DATE_FORMAT = "%Y-%m-%d"
 
 
 @dataclasses.dataclass(frozen=True, order=True)
-class Date(Field["Date"]):
-
+class DateField(Field[T]):
     date: datetime.date
 
-    name = "DATE"
-    regex = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+    regex = r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
 
     def __str__(self):
         return self.date.strftime(_DATE_FORMAT)
 
     @classmethod
-    def parse(cls, group_value: str) -> "Date":
+    def parse(cls, group_value: str) -> T:
         dt = datetime.datetime.strptime(group_value, _DATE_FORMAT)
-        return cls(dt.date())
+        return cls(dt.date())  # pyright: reportGeneralTypeIssues=false
+
+
+@dataclasses.dataclass(frozen=True, order=True)
+class Date(DateField["Date"]):
+
+    name = "DATE"
 
     @classmethod
-    def new(cls, now: datetime.datetime) -> "Date":
+    def new(cls, now: datetime.datetime, path: pathlib.Path) -> "Date":
         return cls(now.date())
 
-    def update(self, now: datetime.datetime) -> "Date":
-        return self.new(now)
+    def update(self, now: datetime.datetime, path: pathlib.Path) -> "Date":
+        return self.new(now, path)
+
+
+@dataclasses.dataclass(frozen=True, order=True)
+class Created(DateField["Created"]):
+    name = "CREATED"
+
+    @classmethod
+    def new(cls, now: datetime.datetime, path: pathlib.Path) -> "Created":
+        return cls(util.file_creation(path).date())
+
+    def update(self, now: datetime.datetime, path: pathlib.Path) -> "Created":
+        return self.new(now, path)

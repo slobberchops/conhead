@@ -1,7 +1,8 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Created: 2022-06-06
+# Updated: 2022-06-09
 import os
 import pathlib
 import stat
@@ -74,7 +75,7 @@ def write_content(path: pathlib.Path, entry: DirEntry):
             write_content(path / file_name, entry)
     elif isinstance(entry, str):
         content = config.deindent_string(entry)
-        with open(path, "w") as open_file:
+        with open(path, "w+") as open_file:
             open_file.write(content)
     elif isinstance(entry, Perm):
         write_content(path, entry.content)

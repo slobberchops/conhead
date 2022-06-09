@@ -1,8 +1,12 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Created: 2022-06-06
+# Updated: 2022-06-09
 import copy
+import datetime
+import pathlib
+from unittest import mock
 
 import pytest
 
@@ -109,3 +113,47 @@ class TestFrozenDict:
             h = hash(dct)
             assert isinstance(h, int)
             assert h == hash((("a", 1), ("b", 2), ("c", util.FrozenDict())))
+
+
+class FakeStat:
+    pass
+
+
+class TestFileCreation:
+    @staticmethod
+    @pytest.fixture
+    def pyproject_toml() -> str:
+        return "# file content"
+
+    @staticmethod
+    def test_real_file(project_dir):
+        project = project_dir / "pyproject.toml"
+        creation = util.file_creation(project)
+        assert isinstance(creation, datetime.datetime)
+
+    @staticmethod
+    def test_has_birthtime(project_dir):
+        fake_stat = FakeStat()
+        fake_stat.st_birthtime = datetime.datetime(
+            2012, 6, 12
+        ).timestamp()  # pyright: reportGeneralTypeIssues=false
+        fake_stat.st_ctime = datetime.datetime(
+            2014, 7, 28
+        ).timestamp()  # pyright: reportGeneralTypeIssues=false
+
+        with mock.patch.object(pathlib.Path, "stat") as stat:
+            stat.return_value = fake_stat
+            creation = util.file_creation(project_dir / "pyproject.toml")
+        assert creation == datetime.datetime(2012, 6, 12)
+
+    @staticmethod
+    def test_has_no_birthtime(project_dir):
+        fake_stat = FakeStat()
+        fake_stat.st_ctime = datetime.datetime(
+            2014, 7, 28
+        ).timestamp()  # pyright: reportGeneralTypeIssues=false
+
+        with mock.patch.object(pathlib.Path, "stat") as stat:
+            stat.return_value = fake_stat
+            creation = util.file_creation(project_dir / "pyproject.toml")
+        assert creation == datetime.datetime(2014, 7, 28)

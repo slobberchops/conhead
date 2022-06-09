@@ -1,9 +1,12 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Created: 2022-06-06
+# Updated: 2022-06-09
 import collections.abc
 import copy
+import datetime
+import pathlib
 from typing import Mapping
 from typing import Optional
 from typing import TypeVar
@@ -60,3 +63,12 @@ class FrozenDict(collections.abc.Hashable, collections.abc.Mapping[str, A]):
 
     def __hash__(self):
         return hash(tuple(self.items()))
+
+
+def file_creation(path: pathlib.Path) -> datetime.datetime:
+    stat = path.stat()
+    try:
+        timestamp = stat.st_birthtime
+    except AttributeError:
+        timestamp = stat.st_ctime
+    return datetime.datetime.fromtimestamp(timestamp)

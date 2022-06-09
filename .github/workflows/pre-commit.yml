@@ -1,7 +1,8 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Created: 2022-06-06
+# Updated: 2022-06-09
 name: Run pre-commit
 
 on:
@@ -9,10 +10,11 @@ on:
 
 jobs:
   pre-commit:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ['3.9', '3.10']
+        os: [ubuntu-latest, windows-latest, macos-latest]
     name: Run pre-commit checks on python ${{ matrix.python-version }}
     steps:
 

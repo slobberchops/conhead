@@ -1,7 +1,8 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Created: 2022-06-06
+# Updated: 2022-06-09
 import dataclasses
 import datetime
 import logging
@@ -118,7 +119,7 @@ def check_path(
             up_to_date, content, header_def, updated_values, parsed_values
         )
 
-    updated_values = tuple(d.update(now) for d in parsed_values.fields)
+    updated_values = tuple(d.update(now, path) for d in parsed_values.fields)
     if updated_values != parsed_values.fields:
         logger.warning("out of date: %s", path)
         updated_values = updated_values
@@ -168,7 +169,7 @@ def rewrite_file(
         headerless_content = content
 
     try:
-        with path.open("w") as source_file:
+        with path.open("w+") as source_file:
             if not remove_header:
                 assert field_values is not None
                 template.write_header(header_def.template, field_values, source_file)

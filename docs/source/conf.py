@@ -1,7 +1,8 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-06-07
+# Created: 2022-06-09
+# Updated: 2022-06-09
 #
 # Configuration file for the Sphinx documentation builder.
 

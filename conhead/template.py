@@ -1,7 +1,8 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Created: 2022-06-06
+# Updated: 2022-06-09
 import dataclasses
 import enum
 import io
@@ -25,6 +26,7 @@ class FieldKind(enum.Enum):
     Enumeration defining computed fields.
     """
 
+    CREATED = fields.Created
     DATE = fields.Date
     YEARS = fields.Years
 

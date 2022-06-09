@@ -1,7 +1,6 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
 import datetime
 import os
 import pathlib

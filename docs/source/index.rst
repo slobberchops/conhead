@@ -2,7 +2,6 @@
     Copyright 2022 Rafe Kaplan
     SPDX-License-Identifier: Apache-2.0
 
-    Updated: 2022-06-06
 
 conhead: Consistent Headers
 ===========================

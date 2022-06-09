@@ -1,7 +1,6 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
 import dataclasses
 import enum
 import io
@@ -9,7 +8,6 @@ import re
 from typing import Generic
 from typing import Iterator
 from typing import Optional
-from typing import TextIO
 from typing import TypeVar
 from typing import cast
 
@@ -257,7 +255,7 @@ def make_template_parser(template: str) -> HeaderParser:
     return HeaderParser(tuple(groups), re.compile(pattern.getvalue()))
 
 
-def write_header(template: str, values: FieldValues, output: TextIO):
+def write_header(template: str, values: FieldValues) -> str:
     """
     Writes a header to output.
 
@@ -267,13 +265,15 @@ def write_header(template: str, values: FieldValues, output: TextIO):
 
     :param template: Header template as found in `HeaderDef`.
     :param values: Sequence of field values defined in header template.
-    :param output: Text output.
+    :returns: New header as string.
     """
+    header = []
     value_iterator = iter(values)
     for token in tokenize_template(template):
         kind = token.kind
         if kind is TokenKind.FIELD:
             field_value = next(value_iterator)
-            output.write(str(field_value))
+            header.append(str(field_value))
         else:
-            output.write(token.parsed)
+            header.append(token.parsed)
+    return "".join(header)

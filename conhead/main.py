@@ -1,7 +1,6 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-06-09
 import contextlib
 import dataclasses
 import datetime
@@ -117,12 +116,19 @@ def iter_path(path: pathlib.Path) -> Iterator[tuple[pathlib.Path, bool]]:
     help="Increase log verbosity. May be used more than once.",
 )
 @click.option(
+    "--show-changes",
+    is_flag=True,
+    default=False,
+    is_eager=True,
+    help="Show changes in header.",
+)
+@click.option(
     "--quiet",
     "-q",
     count=True,
     help="Decrease log verbosity. May be used more than once.",
 )
-def main(paths, check, delete, config_path, verbose, quiet):
+def main(paths, check, delete, config_path, verbose, show_changes, quiet):
     """
     Consistent header manager
 
@@ -193,6 +199,7 @@ def main(paths, check, delete, config_path, verbose, quiet):
                     values,
                     result.parsed_values,
                     delete,
+                    show_changes,
                 )
 
         if error:

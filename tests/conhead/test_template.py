@@ -1,9 +1,7 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
 import datetime
-import io
 import re
 
 import pytest
@@ -316,11 +314,9 @@ class TestMakeTemplateRe:
 
 @pytest.mark.parametrize("template_field_kind,unparsed,parsed", PARSER_TEST_DATA)
 def test_write_header(template_field_kind, unparsed, parsed):
-    content = io.StringIO()
-    template.write_header(
+    content = template.write_header(
         f"start {{{{{template_field_kind.name}}}}} end\n",
         (parsed,),
-        content,
     )
 
-    assert content.getvalue() == f"start {parsed} end\n"
+    assert content == f"start {parsed} end\n"

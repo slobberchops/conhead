@@ -6,6 +6,7 @@
 Next Version
 ============
 - Integration with readthe docs at https://conhead.readthedocs.io.
+- Add --show-changes which shows old header and new header.
 
 v0.4.0
 ======

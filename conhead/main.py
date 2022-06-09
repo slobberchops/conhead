@@ -1,7 +1,7 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Updated: 2022-06-09
 import contextlib
 import dataclasses
 import datetime
@@ -60,7 +60,7 @@ def _check_and_delete_mutually_exclusive(
 
 
 def iter_dir(dir: pathlib.Path) -> Iterator[pathlib.Path]:
-    for entry in dir.iterdir():
+    for entry in sorted(dir.iterdir()):
         if entry.is_symlink():
             continue
         if entry.is_dir():

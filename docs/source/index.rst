@@ -52,7 +52,6 @@ Example:
     template = """
         # Copyright {{YEARS}} Organized Organization
         # SPDX-License-Identifier: Apache-2.0
-
     """
 
     [tools.conhead.header.slashhead]
@@ -60,7 +59,14 @@ Example:
     template = """
         // Copyright {{YEARS}} Organized Organization
         // SPDX-License-Identifier: Apache-2.0
+    """
 
+    [tools.conhead.header.dashhead]
+    extensions = ['html']
+    template = """
+        <!-- Copyright {{YEARS}} Organized Organization
+             SPDX-License-Identifier: Apache-2.0
+        -->
     """
 
 Template Definition
@@ -95,7 +101,7 @@ Notice a few things about the header template.
     in ``2022``, this field is rewritten as ``2020-2022``.
 -   If you need to write some text that contains certain
     characters used to describe fields, you must escape them.
-    Examples are ``\{``, ``\}`` and `\\`. These characters will
+    Examples are ``\{``, ``\}`` and ``\\``. These characters will
     appear in the rendered header without the preceding slash.
 
 Usage

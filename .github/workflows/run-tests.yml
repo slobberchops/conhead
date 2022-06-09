@@ -9,11 +9,12 @@ on:
 
 jobs:
   pre-commit:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ['3.9', '3.10']
-    name: Run pre-commit checks on python ${{ matrix.python-version }}
+        os: [ubuntu-latest, macos-latest]
+    name: ${{matrix.os}} py${{ matrix.python-version }}
     steps:
 
     - uses: actions/checkout@v3

@@ -1,7 +1,7 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
+# Updated: 2022-06-09
 import datetime
 import inspect
 import logging
@@ -72,7 +72,7 @@ class TestIterFilesystem:
         iterator = main.iter_dir(project_dir)
         assert inspect.isgenerator(iterator)
 
-        a_file, sub_file3, sub_file2, sub_file1 = list(iterator)
+        sub_file1, sub_file2, sub_file3, a_file = list(iterator)
         assert a_file.relative_to(project_dir) == pathlib.Path("a-file")
         assert sub_file1.relative_to(project_dir) == pathlib.Path("a-dir/a-sub-file1")
         assert sub_file2.relative_to(project_dir) == pathlib.Path("a-dir/a-sub-file2")
@@ -113,9 +113,9 @@ class TestIterFilesystem:
             assert inspect.isgenerator(iterator)
 
             (
-                (sub_file3, is_param1),
+                (sub_file1, is_param1),
                 (sub_file2, is_param2),
-                (sub_file1, is_param3),
+                (sub_file3, is_param3),
             ) = iterator
             assert sub_file1 == project_dir / "a-dir" / "a-sub-file1"
             assert not is_param1
@@ -315,9 +315,9 @@ class TestMain:
         (
             process1,
             up_to_date1,
-            skip,
             process2,
             up_to_date2,
+            skip,
             process3,
             missing,
             write,
@@ -333,12 +333,13 @@ class TestMain:
             logging.INFO,
             "up to date: src/sub-dir/file1.ext1",
         )
-        assert skip == ("conhead", logging.DEBUG, "skipping: src/sub-dir/file3.unknown")
         assert process2 == (
             "conhead",
             logging.DEBUG,
             "checking: src/sub-dir/file2.ext3",
         )
+
+        assert skip == ("conhead", logging.DEBUG, "skipping: src/sub-dir/file3.unknown")
 
         assert process3 == (
             "conhead",
@@ -440,14 +441,14 @@ class TestMain:
 
         assert update_reports == [
             "skipping: pyproject.toml",
-            "checking: src/up-to-date.ext2",
+            "checking: src/empty.ext1",
             "checking: src/no-header.ext3",
             "checking: src/out-of-date.ext4",
             "checking: src/sub-dir/file1.ext1",
-            "skipping: src/sub-dir/file3.unknown",
             "checking: src/sub-dir/file2.ext3",
+            "skipping: src/sub-dir/file3.unknown",
             "checking: src/sub-dir/file4.ext1",
-            "checking: src/unreadable.ext1",
-            "checking: src/empty.ext1",
             "skipping: src/unmatched.unknown",
+            "checking: src/unreadable.ext1",
+            "checking: src/up-to-date.ext2",
         ]

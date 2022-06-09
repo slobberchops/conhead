@@ -28,4 +28,4 @@ jobs:
     - run: pipx install --python python poetry
     - run: pipx install --python python pre-commit
     - run: poetry install
-    - run: poetry pytest
+    - run: poetry run pytest

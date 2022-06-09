@@ -1,7 +1,7 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Run pre-commit
+name: Run tests
 
 on:
   pull_request:

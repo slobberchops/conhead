@@ -1,7 +1,6 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-06-06
 
 [tool.poetry]
 name = "conhead"
@@ -89,7 +88,6 @@ template="""
     # Copyright {{YEARS}} Rafe Kaplan
     # SPDX-License-Identifier: Apache-2.0
     #
-    # Updated: {{DATE}}
 """
 
 [tool.conhead.header.webhead]
@@ -99,5 +97,4 @@ template = """
     Copyright {{YEARS}} Rafe Kaplan
     SPDX-License-Identifier: Apache-2.0
 
-    Updated: {{DATE}}
 """

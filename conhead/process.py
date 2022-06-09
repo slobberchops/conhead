@@ -1,13 +1,14 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
 import dataclasses
 import datetime
 import logging
 import pathlib
 from typing import Optional
 from typing import Union
+
+import click
 
 from conhead import config
 from conhead import template
@@ -139,6 +140,7 @@ def rewrite_file(
     field_values: Optional[template.FieldValues],
     parsed_values: Optional[template.ParsedValues],
     remove_header: bool,
+    show_changes: bool,
 ) -> bool:
     """
     Re-write a file based on result of previous check.
@@ -152,6 +154,7 @@ def rewrite_file(
     :param parsed_values: Values originally parsed from matched header.
     :param remove_header: If False, will re-write file with header, else will
         omit header.
+    :param show_changes: If True, show changes to file, else don't show changes.
     :return: True if header rewritten, else False.
     """
     if isinstance(path, str):
@@ -167,11 +170,29 @@ def rewrite_file(
     else:
         headerless_content = content
 
+    if remove_header:
+        new_header = ""
+    else:
+        assert field_values
+        new_header = template.write_header(header_def.template, field_values)
+
+    if show_changes:
+        click.secho(path)
+        if parsed_values:
+            click.secho(parsed_values.header, fg="red")
+        else:
+            click.secho("New header", fg="red")
+        click.secho("")
+        if not new_header:
+            click.secho("Header removed", fg="green")
+        else:
+            click.secho(new_header, fg="green")
+        click.secho("")
+
     try:
         with path.open("w") as source_file:
-            if not remove_header:
-                assert field_values is not None
-                template.write_header(header_def.template, field_values, source_file)
+            if new_header:
+                source_file.write(new_header)
             source_file.write(headerless_content)
     except PermissionError:
         logger.error("unwritable: %s", path)

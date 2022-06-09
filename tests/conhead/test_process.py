@@ -1,7 +1,6 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-# Updated: 2022-05-30
 import datetime
 import logging
 import pathlib
@@ -250,6 +249,7 @@ class TestRewriteFile:
             field_values,
             None,
             False,
+            False,
         )
 
         empty = pathlib.Path("result.ext1").read_text()
@@ -277,6 +277,7 @@ class TestRewriteFile:
             field_values,
             None,
             False,
+            False,
         )
 
         process, error = caplog.record_tuples
@@ -298,6 +299,7 @@ class TestRewriteFile:
             header_def,
             field_values,
             None,
+            False,
             False,
         )
 
@@ -322,6 +324,7 @@ class TestRewriteFile:
             field_values,
             parsed_values,
             False,
+            False,
         )
 
         with_header = pathlib.Path("result.ext1").read_text()
@@ -330,7 +333,8 @@ class TestRewriteFile:
         (process,) = caplog.record_tuples
         assert process == ("test", logging.INFO, "rewriting: result.ext1")
 
-    def test_remove_header_has_header(self, conhead_config, logger, caplog):
+    @staticmethod
+    def test_remove_header_has_header(conhead_config, logger, caplog):
         header_def = conhead_config.header_defs["header1"]
         field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
         existing_header = "# line 1 2011\n# line 2 2011-2014\n"
@@ -344,6 +348,7 @@ class TestRewriteFile:
             field_values,
             parsed_values,
             True,
+            False,
         )
 
         with_header = pathlib.Path("result.ext1").read_text()
@@ -351,3 +356,118 @@ class TestRewriteFile:
 
         (process,) = caplog.record_tuples
         assert process == ("test", logging.INFO, "removing header: result.ext1")
+
+    class TestShowChanges:
+        @staticmethod
+        def test_new_header(conhead_config, logger, caplog, capsys):
+            header_def = conhead_config.header_defs["header1"]
+            field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
+            assert process_module.rewrite_file(
+                "result.ext1",
+                logger,
+                "end of file\n",
+                header_def,
+                field_values,
+                None,
+                False,
+                True,
+            )
+
+            with_header = pathlib.Path("result.ext1").read_text()
+            assert with_header == "# line 1 2019\n# line 2 2014-2019\nend of file\n"
+
+            (process,) = caplog.record_tuples
+            assert process == ("test", logging.INFO, "rewriting: result.ext1")
+
+            out, _ = capsys.readouterr()
+
+            assert out == "\n".join(
+                [
+                    "result.ext1",
+                    "New header",
+                    "",
+                    "# line 1 2019",
+                    "# line 2 2014-2019",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+
+        @staticmethod
+        def test_update_existing(conhead_config, logger, caplog, capsys):
+            header_def = conhead_config.header_defs["header1"]
+            field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
+            existing_header = "# line 1 2011\n# line 2 2011-2014\n"
+            existing_content = f"{existing_header}end of file\n"
+            parsed_values = template.ParsedValues(field_values, existing_header)
+            assert process_module.rewrite_file(
+                pathlib.Path("result.ext1"),
+                logger,
+                existing_content,
+                header_def,
+                field_values,
+                parsed_values,
+                False,
+                True,
+            )
+
+            with_header = pathlib.Path("result.ext1").read_text()
+            assert with_header == "# line 1 2019\n# line 2 2014-2019\nend of file\n"
+
+            (process,) = caplog.record_tuples
+            assert process == ("test", logging.INFO, "rewriting: result.ext1")
+
+            out, _ = capsys.readouterr()
+            assert out == "\n".join(
+                [
+                    "result.ext1",
+                    "# line 1 2011",
+                    "# line 2 2011-2014",
+                    "",
+                    "",
+                    "# line 1 2019",
+                    "# line 2 2014-2019",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+
+        @staticmethod
+        def test_remove_header(conhead_config, logger, caplog, capsys):
+            header_def = conhead_config.header_defs["header1"]
+            field_values = (fields.Years(2019, 2019), fields.Years(2014, 2019))
+            existing_header = "# line 1 2011\n# line 2 2011-2014\n"
+            existing_content = f"{existing_header}end of file\n"
+            parsed_values = template.ParsedValues(field_values, existing_header)
+            assert process_module.rewrite_file(
+                pathlib.Path("result.ext1"),
+                logger,
+                existing_content,
+                header_def,
+                field_values,
+                parsed_values,
+                True,
+                True,
+            )
+
+            with_header = pathlib.Path("result.ext1").read_text()
+            assert with_header == "end of file\n"
+
+            (process,) = caplog.record_tuples
+            assert process == ("test", logging.INFO, "removing header: result.ext1")
+
+            out, _ = capsys.readouterr()
+            assert out == "\n".join(
+                [
+                    "result.ext1",
+                    "# line 1 2011",
+                    "# line 2 2011-2014",
+                    "",
+                    "",
+                    "Header removed",
+                    "",
+                    "",
+                ]
+            )

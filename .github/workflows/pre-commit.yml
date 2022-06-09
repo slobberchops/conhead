@@ -25,8 +25,7 @@ jobs:
         python-version: "${{ matrix.python-version }}"
         architecture: x64
 
-    - run: python --version
-    - run: pipx install --python python${{ matrix.python-version }} poetry
-    - run: pipx install --python python${{ matrix.python-version }} pre-commit
+    - run: pipx install --python python poetry
+    - run: pipx install --python python pre-commit
     - run: poetry install
     - run: pre-commit run -a

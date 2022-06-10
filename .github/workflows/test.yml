@@ -1,15 +1,15 @@
 # Copyright 2022 Rafe Kaplan
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Test things
+name: Test
 
 on:
   pull_request:
 
 jobs:
-  pre-commit:
+  publish:
     runs-on: ubuntu-20.04
-    name: Do test
+    name: Check things
     steps:
 
     - uses: actions/checkout@v3
@@ -25,12 +25,13 @@ jobs:
 
     - name: Extract version from poetry
       run: >
-        echo "::set-output name=version::$(poetry install --dry-run |
+        mkdir dist &&
+        poetry install --dry-run |
         grep -o 'conhead \(.*\)' |
-        grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
+        grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' > dist/VERSION
 
-#    - name: Extract version
-#      id: set-version
-#      run: echo "::set-output name=version::$(cat dist/VERSION)"
+    - name: Put version in environment
+      run: echo "release_version=$(echo dist/VERSION)" >> $GITHUB_ENV
 
-    - run: echo version is ${{ steps.set-version.outputs.version }}
+    - name: Check
+      run: echo ${{ env.release_version }}

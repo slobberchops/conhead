@@ -25,13 +25,12 @@ jobs:
 
     - name: Extract version from poetry
       run: >
-        mkdir dist &&
-        poetry install --dry-run |
+        echo "::set-output name=version::$(poetry install --dry-run |
         grep -o 'conhead \(.*\)' |
-        grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' > dist/VERSION
+        grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
 
-    - name: Extract version
-      id: set-version
-      run: echo "::set-output name=version::$(cat dist/VERSION)"
+#    - name: Extract version
+#      id: set-version
+#      run: echo "::set-output name=version::$(cat dist/VERSION)"
 
     - run: echo version is ${{ steps.set-version.outputs.version }}

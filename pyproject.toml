@@ -53,6 +53,7 @@ conhead = "conhead.main:main"
 
 [tool.poetry.urls]
 "Changlog" = "https://github.com/slobberchops/conhead/blob/main/CHANGES.rst"
+"Documentation" = "https://conhead.readthedocs.io"
 "Issue Tracker" = "https://github.com/slobberchops/conhead/issues"
 
 [build-system]

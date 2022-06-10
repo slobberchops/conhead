@@ -36,5 +36,8 @@ jobs:
     - name: Check
       run: echo ${{ env.release_version }}
 
+    - name: Check in quotes
+      run: echo "${{ env.release_version }}"
+
     - name: What is github env
       run: echo "$GITHUB_ENV"

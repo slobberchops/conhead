@@ -21,7 +21,7 @@ jobs:
       run: >
         poetry install --dry-run |
         grep -o 'conhead \(.*\)' |
-        grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')
+        grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*'
 
     - name: Extract version from poetry
       id: set-version

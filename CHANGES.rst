@@ -3,8 +3,8 @@
     SPDX-License-Identifier: Apache-2.0
 
 
-Next Version
-============
+v0.5.0
+======
 - Integration with readthe docs at https://conhead.readthedocs.io.
 - Add --show-changes which shows old header and new header.
 

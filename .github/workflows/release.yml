@@ -36,7 +36,7 @@ jobs:
       run: echo "release_version=$(cat dist/VERSION)" >> $GITHUB_ENV
 
     - name: Make sure version matches GITHUB_REF
-      run: test "refs/tags/v${{ env.version }}" == "$GITHUB_REF"
+      run: test "refs/tags/v${{ env.release_version }}" == "$GITHUB_REF"
 
     - name: Build sdist
       run: poetry build -f sdist
@@ -47,7 +47,7 @@ jobs:
     - name: Test package installs into environment
       run: >
         dist/test-installation/bin/pip
-        install dist/conhead-${{ env.version }}.tar.gz
+        install dist/conhead-${{ env.release_version }}.tar.gz
 
     - name: Install twine
       run: pipx install twine
@@ -59,7 +59,7 @@ jobs:
         twine upload
         --username __token__
         --disable-progress-bar --non-interactive
-        dist/conhead-${{ env.version }}.tar.gz
+        dist/conhead-${{ env.release_version }}.tar.gz
 
     - name: Create Github release
       id: create-release
@@ -78,6 +78,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
-        asset_path: ./dist/conhead-${{ env.version }}.tar.gz
-        asset_name: conhead-${{ env.version }}.tar.gz
+        asset_path: ./dist/conhead-${{ env.release_version }}.tar.gz
+        asset_name: conhead-${{ env.release_version }}.tar.gz
         asset_content_type: application/gzip

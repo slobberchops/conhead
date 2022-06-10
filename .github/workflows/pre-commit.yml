@@ -22,7 +22,7 @@ jobs:
         architecture: x64
         cache: poetry
 
-    - run: pipx install --python python pre-commit
-    - run: poetry env use python
+    - run: pipx install --python python3.10 pre-commit
+    - run: poetry env use python3.10
     - run: poetry install
     - run: SKIP=test pre-commit run -a

@@ -26,7 +26,7 @@ jobs:
         architecture: x64
         cache: poetry
 
-    - run: pipx install --python python pre-commit
-    - run: poetry env use python
+    - run: pipx install --python python"${{ matrix.python-version }}" pre-commit
+    - run: poetry env use python"${{ matrix.python-version }}"
     - run: poetry install
     - run: poetry run pytest

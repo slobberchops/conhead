@@ -23,5 +23,6 @@ jobs:
         cache: poetry
 
     - run: pipx install --python python pre-commit
+    - run: poetry env use python
     - run: poetry install
     - run: SKIP=test pre-commit run -a

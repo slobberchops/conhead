@@ -34,4 +34,4 @@ jobs:
       id: set-version
       run: echo "::set-output name=version::$(cat dist/VERSION)"
 
-    - run: echo version is ${{ steps.set-version.output.version }}
+    - run: echo version is ${{ steps.set-version.outputs.version }}

@@ -22,6 +22,8 @@ jobs:
         architecture: x64
         cache: poetry
 
+    - uses: actions/checkout@v3
+
     - name: Install Poetry
       run: pipx install --python python poetry
 

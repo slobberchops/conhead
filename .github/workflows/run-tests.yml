@@ -26,6 +26,8 @@ jobs:
         architecture: x64
         cache: poetry
 
+    - run: pipx uninstall poetry
+    - run: pipx install --python python${{ matrix.python-version }} poetry
     - run: pipx install --python python${{ matrix.python-version }} pre-commit
     - run: poetry env use python${{ matrix.python-version }}
     - run: poetry install

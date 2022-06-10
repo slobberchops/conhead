@@ -25,5 +25,6 @@ jobs:
 
     - run: pipx install --python python${{ matrix.python-version }} poetry
     - run: pipx install --python python${{ matrix.python-version }} pre-commit
+    - run: poetry env use python${{ matrix.python-version }}
     - run: poetry install
     - run: poetry run pytest

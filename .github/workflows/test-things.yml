@@ -17,6 +17,12 @@ jobs:
     - name: Install Poetry
       run: pipx install --python python poetry
 
+    - name: Print version
+      run: >
+        poetry install --dry-run |
+        grep -o 'conhead \(.*\)' |
+        grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')
+
     - name: Extract version from poetry
       id: set-version
       run: >

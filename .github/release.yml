@@ -20,9 +20,10 @@ jobs:
       with:
         python-version: "3.9"
         architecture: x64
+        cache: poetry
 
     - name: Install Poetry
-      run: pipx install --python python${{ matrix.python-version }} poetry
+      run: pipx install --python python poetry
 
     - name: Extract version from poetry
       run: >

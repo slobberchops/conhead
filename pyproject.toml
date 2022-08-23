@@ -4,7 +4,7 @@
 
 [tool.poetry]
 name = "conhead"
-version = "0.5.0"
+version = "1.0.0"
 description = "Python-based tool for keeping source file headers consistent."
 license = "Apache-2.0"
 authors = [
@@ -15,7 +15,7 @@ homepage = "https://github.com/slobberchops/conhead"
 repository = "https://github.com/slobberchops/conhead"
 
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
